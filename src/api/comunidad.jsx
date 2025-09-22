@@ -5,7 +5,7 @@ export const comunidadAPI = {
   // Obtener todas las unidades
   async getUnidades() {
     try {
-      const response = await api.get('/comunidad/unidad/');
+  const response = await api.get('/comunidad/unidades/');
       return response.data;
     } catch (error) {
       throw error;
@@ -15,7 +15,7 @@ export const comunidadAPI = {
   // Obtener una unidad por ID
   async getUnidad(id) {
     try {
-      const response = await api.get(`/comunidad/unidad/${id}/`);
+  const response = await api.get(`/comunidad/unidades/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -25,7 +25,7 @@ export const comunidadAPI = {
   // Crear una nueva unidad
   async createUnidad(unidadData) {
     try {
-      const response = await api.post('/comunidad/unidad/', unidadData);
+  const response = await api.post('/comunidad/unidades/', unidadData);
       return response.data;
     } catch (error) {
       throw error;
@@ -35,7 +35,7 @@ export const comunidadAPI = {
   // Actualizar una unidad
   async updateUnidad(id, unidadData) {
     try {
-      const response = await api.put(`/comunidad/unidad/${id}/`, unidadData);
+  const response = await api.put(`/comunidad/unidades/${id}/`, unidadData);
       return response.data;
     } catch (error) {
       throw error;
@@ -45,7 +45,7 @@ export const comunidadAPI = {
   // Eliminar una unidad
   async deleteUnidad(id) {
     try {
-      const response = await api.delete(`/comunidad/unidad/${id}/`);
+  const response = await api.delete(`/comunidad/unidades/${id}/`);
       return response.data;
     } catch (error) {
       throw error;

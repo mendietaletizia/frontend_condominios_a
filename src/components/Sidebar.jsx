@@ -11,16 +11,15 @@ const Sidebar = ({ isOpen, onToggle }) => {
 
   // Definir la estructura de paquetes según el backend
   const getPackageStructure = () => {
+    // Definir a qué roles pertenece cada CU
     const packages = [
       {
         id: 'autenticacion',
         label: 'Autenticación y Accesos',
         icon: '🔐',
         cases: [
-          { id: 'cu1', label: 'CU1 - Iniciar Sesión', path: '/login', implemented: true },
-          { id: 'cu2', label: 'CU2 - Cerrar Sesión', path: '/logout', implemented: true },
-          { id: 'cu14', label: 'CU14 - Gestión de Accesos', path: '/accesos', implemented: false },
-          { id: 'cu15', label: 'CU15 - Control de Visitas', path: '/visitas', implemented: false }
+          { id: 'cu14', label: 'CU14 - Gestión de Accesos', path: '/accesos', implemented: true, roles: ['administrador', 'seguridad'] },
+          { id: 'cu15', label: 'CU15 - Control de Visitas', path: '/visitas', implemented: true, roles: ['administrador', 'seguridad'] }
         ]
       },
       {
@@ -28,10 +27,10 @@ const Sidebar = ({ isOpen, onToggle }) => {
         label: 'Usuarios y Roles',
         icon: '👥',
         cases: [
-          { id: 'cu3', label: 'CU3 - Gestión de Usuarios', path: '/usuarios', implemented: true },
-          { id: 'cu4', label: 'CU4 - Gestión de Roles', path: '/roles', implemented: true },
-          { id: 'cu5', label: 'CU5 - Gestión de Residentes', path: '/residentes', implemented: true },
-          { id: 'cu13', label: 'CU13 - Gestión de Empleados', path: '/empleados', implemented: false }
+          { id: 'cu3', label: 'CU3 - Gestión de Usuarios', path: '/usuarios', implemented: true, roles: ['administrador'] },
+          { id: 'cu4', label: 'CU4 - Gestión de Roles', path: '/roles', implemented: true, roles: ['administrador'] },
+          { id: 'cu5', label: 'CU5 - Gestión de Residentes', path: '/residentes', implemented: true, roles: ['administrador'] },
+          { id: 'cu13', label: 'CU13 - Gestión de Empleados', path: '/empleados', implemented: true, roles: ['administrador'] }
         ]
       },
       {
@@ -39,10 +38,10 @@ const Sidebar = ({ isOpen, onToggle }) => {
         label: 'Unidades y Comunidad',
         icon: '🏢',
         cases: [
-          { id: 'cu6', label: 'CU6 - Gestión de Unidades', path: '/unidades', implemented: true },
-          { id: 'cu11', label: 'CU11 - Gestión de Eventos', path: '/eventos', implemented: false },
-          { id: 'cu12', label: 'CU12 - Gestión de Reclamos', path: '/reclamos', implemented: false },
-          { id: 'cu17', label: 'CU17 - Gestión de Áreas Comunes', path: '/areas-comunes', implemented: false }
+          { id: 'cu6', label: 'CU6 - Gestión de Unidades', path: '/unidades', implemented: true, roles: ['administrador', 'residente'] },
+          { id: 'cu11', label: 'CU11 - Gestión de Eventos', path: '/eventos', implemented: true, roles: ['administrador', 'residente'] },
+          { id: 'cu12', label: 'CU12 - Gestión de Reclamos', path: '/reclamos', implemented: true, roles: ['administrador', 'residente'] },
+          { id: 'cu17', label: 'CU17 - Gestión de Áreas Comunes', path: '/areas-comunes', implemented: true, roles: ['administrador', 'residente'] }
         ]
       },
       {
@@ -50,10 +49,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
         label: 'Pagos y Finanzas',
         icon: '💰',
         cases: [
-          { id: 'cu7', label: 'CU7 - Gestión de Pagos', path: '/pagos', implemented: true },
-          { id: 'cu18', label: 'CU18 - Reportes Financieros', path: '/reportes-financieros', implemented: false },
-          { id: 'cu21', label: 'CU21 - Gestión de Presupuestos', path: '/presupuestos', implemented: false },
-          { id: 'cu22', label: 'CU22 - Conciliación Bancaria', path: '/conciliacion', implemented: false }
+          { id: 'cu18', label: 'CU18 - Reportes Financieros', path: '/reportes-financieros', implemented: true, roles: ['administrador', 'residente'] }
         ]
       },
       {
@@ -61,10 +57,10 @@ const Sidebar = ({ isOpen, onToggle }) => {
         label: 'Gestión Económica Avanzada',
         icon: '📊',
         cases: [
-          { id: 'cu8', label: 'CU8 - Gestión de Gastos', path: '/gastos', implemented: true },
-          { id: 'cu9', label: 'CU9 - Gestión de Multas', path: '/multas', implemented: true },
-          { id: 'cu19', label: 'CU19 - Análisis de Costos', path: '/analisis-costos', implemented: false },
-          { id: 'cu20', label: 'CU20 - Proyecciones Financieras', path: '/proyecciones', implemented: false }
+          { id: 'cu8', label: 'CU8 - Gestión de Gastos', path: '/gastos', implemented: true, roles: ['administrador'] },
+          { id: 'cu9', label: 'CU9 - Gestión de Multas', path: '/multas', implemented: true, roles: ['administrador', 'residente'] },
+          { id: 'cu19', label: 'CU19 - Análisis de Costos', path: '/analisis-costos', implemented: true, roles: ['administrador'] },
+          { id: 'cu20', label: 'CU20 - Proyecciones Financieras', path: '/proyecciones', implemented: true, roles: ['administrador'] }
         ]
       },
       {
@@ -72,51 +68,30 @@ const Sidebar = ({ isOpen, onToggle }) => {
         label: 'Mantenimiento y Reservas',
         icon: '🔧',
         cases: [
-          { id: 'cu10', label: 'CU10 - Gestión de Mantenimiento', path: '/mantenimiento', implemented: true },
-          { id: 'cu16', label: 'CU16 - Reservas de Áreas', path: '/reservas', implemented: false },
-          { id: 'cu23', label: 'CU23 - Control de Inventario', path: '/inventario', implemented: false },
-          { id: 'cu24', label: 'CU24 - Programación de Mantenimiento', path: '/programacion-mantenimiento', implemented: false }
+          { id: 'cu10', label: 'CU10 - Gestión de Mantenimiento', path: '/mantenimiento', implemented: true, roles: ['administrador', 'empleado'] }
         ]
       }
     ];
-
     return packages;
   };
 
   // Filtrar paquetes según el rol del usuario
   const getAvailablePackages = () => {
     const allPackages = getPackageStructure();
-    
-    if (canAccess('administrador')) {
-      // Administrador ve todo
-      return allPackages;
-    } else if (canAccess('residente')) {
-      // Residente solo ve lo que le corresponde
+    if (!user) return [];
+    const userRole = user.rol?.toLowerCase();
+    if (userRole === 'administrador') {
+      // Administrador ve todo lo implementado
       return allPackages.map(pkg => ({
         ...pkg,
-        cases: pkg.cases.filter(caso => 
-          ['cu1', 'cu2', 'cu7'].includes(caso.id) // Solo login, logout y pagos
-        )
-      })).filter(pkg => pkg.cases.length > 0);
-    } else if (canAccess('empleado')) {
-      // Empleado ve según su cargo
-      return allPackages.map(pkg => ({
-        ...pkg,
-        cases: pkg.cases.filter(caso => 
-          ['cu1', 'cu2', 'cu6', 'cu7', 'cu8', 'cu9', 'cu10'].includes(caso.id)
-        )
-      })).filter(pkg => pkg.cases.length > 0);
-    } else if (canAccess('seguridad')) {
-      // Seguridad ve accesos y visitas
-      return allPackages.map(pkg => ({
-        ...pkg,
-        cases: pkg.cases.filter(caso => 
-          ['cu1', 'cu2', 'cu14', 'cu15'].includes(caso.id)
-        )
+        cases: pkg.cases.filter(caso => caso.implemented)
       })).filter(pkg => pkg.cases.length > 0);
     }
-    
-    return [];
+    // Otros roles solo ven lo implementado y lo que les corresponde
+    return allPackages.map(pkg => ({
+      ...pkg,
+      cases: pkg.cases.filter(caso => caso.implemented && caso.roles.includes(userRole))
+    })).filter(pkg => pkg.cases.length > 0);
   };
 
   const packages = getAvailablePackages();

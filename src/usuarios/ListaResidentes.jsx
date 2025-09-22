@@ -1,39 +1,112 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/config';
+import { usuariosAPI } from '../api/usuarios';
 import './ListaResidentes.css';
 
 const ListaResidentes = () => {
   const { canAccess } = useAuth();
   const [residentes, setResidentes] = useState([]);
   const [unidades, setUnidades] = useState([]);
+    const [usuariosResidentes, setUsuariosResidentes] = useState([]); // Initialize usuariosResidentes
+  const [personas, setPersonas] = useState([]);
+  const [relaciones, setRelaciones] = useState([]);
+  const [residentesRaw, setResidentesRaw] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingResidente, setEditingResidente] = useState(null);
   const [formData, setFormData] = useState({
+    ci: '',
     nombre: '',
     email: '',
     telefono: '',
-    usuario: null
+    tipo: 'residente',
+    unidad: '',
+    usuario_asociado: '',
   });
+
 
   useEffect(() => {
     if (canAccess('administrador')) {
       loadData();
+      loadUsuariosResidentes(); // Load residents' users
     }
   }, []);
+
+  const loadUsuariosResidentes = async () => {
+    try {
+      console.log('👥 Cargando usuarios residentes...');
+      const usuarios = await usuariosAPI.getUsuarios();
+      
+      // Filtrar usuarios con rol residente (tanto por string como por objeto)
+      const usuariosResidentes = usuarios.filter(u => {
+        if (typeof u.rol === 'string') {
+          return u.rol.toLowerCase() === 'residente';
+        } else if (u.rol && u.rol.nombre) {
+          return u.rol.nombre.toLowerCase() === 'residente';
+        }
+        return false;
+      });
+      
+      console.log('🏠 Usuarios residentes encontrados:', usuariosResidentes.length);
+      setUsuariosResidentes(usuariosResidentes);
+    } catch (error) {
+      console.error('❌ Error cargando usuarios residentes:', error);
+      setUsuariosResidentes([]);
+    }
+  };
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [residentesRes, unidadesRes] = await Promise.all([
+      console.log('🔄 Cargando datos de residentes...');
+
+      // Traer datos básicos
+      const [personasRes, residentesRes, relacionesRes, unidadesRes] = await Promise.all([
         api.get('/usuarios/persona/'),
-        api.get('/comunidad/unidad/')
+        api.get('/usuarios/residentes/'),
+        api.get('/comunidad/residentes-unidad/'),
+        api.get('/comunidad/unidades/')
       ]);
-      setResidentes(residentesRes.data);
+
+      console.log('📥 Personas recibidas:', personasRes.data);
+      console.log('📥 Residentes recibidos:', residentesRes.data);
+      console.log('📥 Relaciones recibidas:', relacionesRes.data);
+      console.log('📥 Unidades recibidas:', unidadesRes.data);
+
+      setPersonas(personasRes.data);
+      setResidentesRaw(residentesRes.data);
+      setRelaciones(relacionesRes.data);
       setUnidades(unidadesRes.data);
+
+      // Procesar residentes para la tabla
+      const residentesTabla = residentesRes.data.map(residente => {
+        const persona = personasRes.data.find(p => p.id === residente.persona);
+        const relacion = relacionesRes.data.find(r => r.id_residente === residente.id);
+        const unidad = relacion ? unidadesRes.data.find(u => u.id === relacion.id_unidad) : null;
+        const usuarioAsociado = usuariosResidentes.find(u => u.id === residente.usuario_asociado);
+
+        return {
+          id: residente.id,
+          persona_id: persona ? persona.id : null,
+          ci: persona ? persona.ci : '-',
+          nombre: persona ? persona.nombre : '-',
+          email: persona ? persona.email : '-',
+          telefono: persona ? persona.telefono : '-',
+          tipo: relacion ? relacion.rol_en_unidad : 'Sin unidad asignada',
+          unidad_nombre: unidad ? unidad.numero_casa : 'Sin asignar',
+          usuario: residente.usuario,
+          usuario_asociado: usuarioAsociado ? usuarioAsociado.username : null,
+          rel_id: relacion ? relacion.id : null,
+          tiene_relacion_unidad: !!relacion
+        };
+      });
+
+      console.log('👥 Residentes procesados:', residentesTabla);
+      setResidentes(residentesTabla);
     } catch (error) {
+      console.error('❌ Error cargando datos:', error);
       setError('Error al cargar datos: ' + (error.response?.data?.detail || error.message));
     } finally {
       setLoading(false);
@@ -43,43 +116,225 @@ const ListaResidentes = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log('📝 Guardando residente:', formData);
+      
       if (editingResidente) {
-        await api.put(`/usuarios/persona/${editingResidente.id}/`, formData);
-      } else {
-        await api.post('/usuarios/persona/', formData);
+        // Modo edición
+        await handleUpdate(e);
+        return;
       }
+
+      // 1. Crear persona
+      const personaRes = await api.post('/usuarios/persona/', {
+        ci: formData.ci,
+        nombre: formData.nombre,
+        email: formData.email,
+        telefono: formData.telefono
+      });
+      const personaId = personaRes.data.id;
+      console.log('✅ Persona creada con ID:', personaId);
+
+      // 2. Crear residente (con usuario_asociado si aplica)
+      const residenteData = {
+        persona: personaId,
+        usuario: null, // Por defecto no tiene usuario propio
+        usuario_asociado: formData.usuario_asociado || null
+      };
+      
+      const residenteRes = await api.post('/usuarios/residentes/', residenteData);
+      const residenteId = residenteRes.data.id;
+      console.log('✅ Residente creado con ID:', residenteId);
+
+      // 3. Crear relación ResidentesUnidad SOLO si se seleccionó una unidad
+      if (formData.unidad) {
+        const relacionData = {
+          id_residente: residenteId,
+          id_unidad: parseInt(formData.unidad),
+          rol_en_unidad: formData.tipo,
+          fecha_inicio: new Date().toISOString().slice(0, 10),
+          estado: true
+        };
+        
+        console.log('🏠 Creando relación con unidad:', relacionData);
+        await api.post('/comunidad/residentes-unidad/', relacionData);
+        console.log('✅ Relación unidad creada');
+      }
+
       setShowForm(false);
       setEditingResidente(null);
       setFormData({
+        ci: '',
         nombre: '',
         email: '',
         telefono: '',
-        usuario: null
+        tipo: 'residente',
+        unidad: '',
+        usuario_asociado: ''
       });
-      loadData();
+      
+      // Recargar datos y usuarios
+      await loadUsuariosResidentes();
+      await loadData();
+      
     } catch (error) {
-      setError('Error al guardar residente: ' + (error.response?.data?.detail || error.message));
+      console.error('❌ Error al guardar:', error.response?.data || error);
+      setError('Error al guardar residente: ' + (error.response?.data?.detail || error.response?.data?.error || error.message));
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      console.log('📝 Actualizando residente:', editingResidente.id, formData);
+      
+      // Validar datos antes de enviar
+      if (!formData.nombre || !formData.ci) {
+        console.error('❌ Datos incompletos para guardar persona:', formData);
+        setError('El nombre y el CI son obligatorios.');
+        return;
+      }
+
+      if (formData.ci.length > 20) {
+        console.error('❌ El CI excede el límite de caracteres:', formData.ci);
+        setError('El CI no puede exceder los 20 caracteres.');
+        return;
+      }
+
+      // Validar que el residente y la persona asociada existan
+      if (!editingResidente || !editingResidente.persona_id) {
+        console.error('❌ Residente o persona asociada no encontrados para actualizar:', editingResidente);
+        setError('No se puede actualizar porque no se encontró el residente o la persona asociada.');
+        return;
+      }
+
+      console.log('📝 Actualizando residente y persona asociada:', editingResidente.id, editingResidente.persona_id);
+      
+      console.log('📤 Enviando datos para guardar persona:', formData);
+      
+      // 1. Actualizar persona
+      if (editingResidente.persona_id) {
+        await api.put(`/usuarios/persona/${editingResidente.persona_id}/`, {
+          ci: formData.ci,
+          nombre: formData.nombre,
+          email: formData.email,
+          telefono: formData.telefono
+        });
+        console.log('✅ Persona actualizada');
+      }
+      
+      // 2. Actualizar residente
+      await api.put(`/usuarios/residentes/${editingResidente.id}/`, {
+        persona: editingResidente.persona_id,
+        usuario: editingResidente.usuario,
+        usuario_asociado: formData.usuario_asociado || null
+      });
+      console.log('✅ Residente actualizado');
+
+      // 3. Actualizar o crear relación ResidentesUnidad
+      if (formData.unidad) {
+        const relacionData = {
+          id_residente: editingResidente.id,
+          id_unidad: parseInt(formData.unidad),
+          rol_en_unidad: formData.tipo,
+          fecha_inicio: new Date().toISOString().slice(0, 10),
+          estado: true
+        };
+        
+        if (editingResidente.rel_id) {
+          // Actualizar relación existente
+          await api.put(`/comunidad/residentes-unidad/${editingResidente.rel_id}/`, relacionData);
+          console.log('✅ Relación actualizada');
+        } else {
+          // Crear nueva relación
+          await api.post('/comunidad/residentes-unidad/', relacionData);
+          console.log('✅ Nueva relación creada');
+        }
+      } else if (editingResidente.rel_id) {
+        // Eliminar relación si ya no tiene unidad
+        await api.delete(`/comunidad/residentes-unidad/${editingResidente.rel_id}/`);
+        console.log('✅ Relación eliminada');
+      }
+
+      setShowForm(false);
+      setEditingResidente(null);
+      setFormData({
+        ci: '',
+        nombre: '',
+        email: '',
+        telefono: '',
+        tipo: 'residente',
+        unidad: '',
+        usuario_asociado: ''
+      });
+      
+      await loadUsuariosResidentes();
+      await loadData();
+      
+    } catch (error) {
+      console.error('❌ Error al actualizar:', error.response?.data || error);
+      setError('Error al actualizar residente: ' + (error.response?.data?.detail || error.response?.data?.error || error.message));
     }
   };
 
   const handleEdit = (residente) => {
+    console.log('✏️ Editando residente:', residente);
     setEditingResidente(residente);
     setFormData({
-      nombre: residente.nombre,
-      email: residente.email || '',
-      telefono: residente.telefono || '',
-      usuario: residente.usuario || null
+      ci: residente.ci !== '-' ? residente.ci : '',
+      nombre: residente.nombre !== '-' ? residente.nombre : '',
+      email: residente.email !== '-' ? residente.email : '',
+      telefono: residente.telefono !== '-' ? residente.telefono : '',
+      tipo: residente.tipo && residente.tipo !== 'Sin unidad asignada' ? residente.tipo : 'residente',
+      unidad: unidades.find(u => u.numero_casa === residente.unidad_nombre)?.id || '',
+      usuario_asociado: usuariosResidentes.find(u => u.username === residente.usuario_asociado)?.id || ''
     });
     setShowForm(true);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Está seguro que desea eliminar este residente?')) {
+    if (window.confirm('¿Está seguro que desea eliminar este residente? Esta acción no se puede deshacer.')) {
       try {
-        await api.delete(`/usuarios/persona/${id}/`);
-        loadData();
+        console.log('🗑️ Eliminando residente:', id);
+        
+        // Buscar el residente y su información
+        const residente = residentesRaw.find(r => r.id === id);
+        if (!residente) {
+          throw new Error('Residente no encontrado');
+        }
+        
+        const personaId = residente.persona;
+        console.log('👤 Persona asociada:', personaId);
+        
+        // 1. Eliminar relación ResidentesUnidad si existe
+        const rel = relaciones.find(r => r.id_residente === id);
+        if (rel) {
+          await api.delete(`/comunidad/residentes-unidad/${rel.id}/`);
+          console.log('✅ Relación unidad eliminada');
+        }
+        
+        // 2. Eliminar residente
+        await api.delete(`/usuarios/residentes/${id}/`);
+        console.log('✅ Residente eliminado');
+        
+        // 3. Eliminar persona
+        // Verificar que la persona asociada exista antes de eliminar
+        if (!editingResidente.persona_id) {
+          console.error('❌ No se encontró una persona asociada para eliminar:', editingResidente);
+          setError('No se puede eliminar porque no se encontró una persona asociada.');
+          return;
+        }
+
+        console.log('🗑️ Eliminando persona asociada:', editingResidente.persona_id);
+        await api.delete(`/usuarios/persona/${personaId}/`);
+        console.log('✅ Persona eliminada');
+        
+        // Recargar datos
+        await loadUsuariosResidentes();
+        await loadData();
+        
       } catch (error) {
-        setError('Error al eliminar residente: ' + (error.response?.data?.detail || error.message));
+        console.error('❌ Error al eliminar:', error.response?.data || error);
+        setError('Error al eliminar residente: ' + (error.response?.data?.detail || error.response?.data?.error || error.message));
       }
     }
   };
@@ -134,6 +389,16 @@ const ListaResidentes = () => {
             <h3>{editingResidente ? 'Editar Residente' : 'Nuevo Residente'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
+                <label>CI:</label>
+                <input
+                  type="text"
+                  name="ci"
+                  value={formData.ci}
+                  onChange={handleChange}
+                  placeholder="Ingrese el CI (opcional)"
+                />
+              </div>
+              <div className="form-group">
                 <label>Nombre Completo:</label>
                 <input
                   type="text"
@@ -144,7 +409,6 @@ const ListaResidentes = () => {
                   placeholder="Ingrese el nombre completo"
                 />
               </div>
-              
               <div className="form-group">
                 <label>Email:</label>
                 <input
@@ -155,7 +419,6 @@ const ListaResidentes = () => {
                   placeholder="Ingrese el email"
                 />
               </div>
-              
               <div className="form-group">
                 <label>Teléfono:</label>
                 <input
@@ -166,7 +429,33 @@ const ListaResidentes = () => {
                   placeholder="Ingrese el teléfono"
                 />
               </div>
-              
+              <div className="form-group">
+                <label>Tipo:</label>
+                <select name="tipo" value={formData.tipo} onChange={handleChange} required>
+                  <option value="residente">Residente</option>
+                  <option value="inquilino">Inquilino</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Unidad (opcional):</label>
+                <select name="unidad" value={formData.unidad} onChange={handleChange}>
+                  <option value="">Sin unidad asignada</option>
+                  {unidades.map(u => (
+                    <option key={u.id} value={u.id}>{u.numero_casa}</option>
+                  ))}
+                </select>
+                <small>Puede asignar la unidad después si no está disponible ahora</small>
+              </div>
+              <div className="form-group">
+                <label>Usuario Asociado (para dependientes):</label>
+                <select name="usuario_asociado" value={formData.usuario_asociado || ''} onChange={handleChange}>
+                  <option value="">Residente independiente (sin usuario asociado)</option>
+                  {usuariosResidentes.map(u => (
+                    <option key={u.id} value={u.id}>{u.username} ({u.email})</option>
+                  ))}
+                </select>
+                <small>Selecciona un usuario si este residente es dependiente (ej: hijo de familia)</small>
+              </div>
               <div className="form-actions">
                 <button type="submit" className="btn-primary">
                   {editingResidente ? 'Actualizar' : 'Crear'}
@@ -178,9 +467,12 @@ const ListaResidentes = () => {
                     setShowForm(false);
                     setEditingResidente(null);
                     setFormData({
+                      ci: '',
                       nombre: '',
                       email: '',
                       telefono: '',
+                      tipo: 'residente',
+                      unidad: '',
                       usuario: null
                     });
                   }}
@@ -215,10 +507,12 @@ const ListaResidentes = () => {
         <table className="residentes-table">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>CI</th>
               <th>Nombre</th>
               <th>Email</th>
               <th>Teléfono</th>
+              <th>Tipo</th>
+              <th>Unidad</th>
               <th>Usuario Asociado</th>
               <th>Acciones</th>
             </tr>
@@ -226,7 +520,7 @@ const ListaResidentes = () => {
           <tbody>
             {residentes.map((residente) => (
               <tr key={residente.id}>
-                <td>{residente.id}</td>
+                <td>{residente.ci || '-'}</td>
                 <td>
                   <div className="residente-name">
                     <strong>{residente.nombre}</strong>
@@ -234,10 +528,22 @@ const ListaResidentes = () => {
                 </td>
                 <td>{residente.email || '-'}</td>
                 <td>{residente.telefono || '-'}</td>
+                <td>{residente.tipo || '-'}</td>
+                <td>{residente.unidad_nombre || '-'}</td>
                 <td>
-                  <span className={`status-badge ${residente.usuario ? 'has-user' : 'no-user'}`}>
-                    {residente.usuario ? 'Sí' : 'No'}
-                  </span>
+                  {residente.usuario_asociado ? (
+                    <span className="status-badge associated" title="Dependiente de usuario">
+                      👨‍👩‍👧‍👦 {residente.usuario_asociado}
+                    </span>
+                  ) : residente.usuario ? (
+                    <span className="status-badge has-user" title="Residente principal con usuario">
+                      👤 Usuario propio
+                    </span>
+                  ) : (
+                    <span className="status-badge no-user" title="Residente independiente sin usuario">
+                      ➖ Independiente
+                    </span>
+                  )}
                 </td>
                 <td>
                   <div className="action-buttons">

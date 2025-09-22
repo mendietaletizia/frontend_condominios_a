@@ -2,6 +2,25 @@
 import api from './config';
 
 export const economiaAPI = {
+  // Obtener resumen financiero
+  async getResumenFinanciero() {
+    try {
+      const response = await api.get('/economia/reportes/resumen_financiero/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener predicción de morosidad
+  async getPredecirMorosidad() {
+    try {
+      const response = await api.get('/economia/morosidad/predecir_morosidad/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   // Obtener todos los gastos
   async getGastos() {
     try {

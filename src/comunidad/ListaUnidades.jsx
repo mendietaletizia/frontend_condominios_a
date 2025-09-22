@@ -29,7 +29,7 @@ const ListaUnidades = () => {
     try {
       setLoading(true);
       const [unidadesRes, residentesUnidadesRes] = await Promise.all([
-        api.get('/comunidad/unidad/'),
+  api.get('/comunidad/unidades/'),
         api.get('/comunidad/residentes-unidad/')
       ]);
       setUnidades(unidadesRes.data);
@@ -45,9 +45,9 @@ const ListaUnidades = () => {
     e.preventDefault();
     try {
       if (editingUnidad) {
-        await api.put(`/comunidad/unidad/${editingUnidad.id}/`, formData);
+  await api.put(`/comunidad/unidades/${editingUnidad.id}/`, formData);
       } else {
-        await api.post('/comunidad/unidad/', formData);
+  await api.post('/comunidad/unidades/', formData);
       }
       setShowForm(false);
       setEditingUnidad(null);
@@ -79,7 +79,7 @@ const ListaUnidades = () => {
   const handleDelete = async (id) => {
     if (window.confirm('¿Está seguro que desea eliminar esta unidad?')) {
       try {
-        await api.delete(`/comunidad/unidad/${id}/`);
+  await api.delete(`/comunidad/unidades/${id}/`);
         loadData();
       } catch (error) {
         setError('Error al eliminar unidad: ' + (error.response?.data?.detail || error.message));

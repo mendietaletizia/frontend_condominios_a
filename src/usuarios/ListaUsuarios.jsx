@@ -1,225 +1,282 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { usuariosAPI } from '../api';
+import { usuariosAPI } from '../api/usuarios';
 import './ListaUsuarios.css';
 
 const ListaUsuarios = () => {
-  const { canAccess } = useAuth();
   const [usuarios, setUsuarios] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [showForm, setShowForm] = useState(false);
+  const [roles, setRoles] = useState([]);
+  const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     first_name: '',
     last_name: '',
+    password: '',
     is_active: true,
-    password: ''
+    rol_id: ''
   });
 
   useEffect(() => {
-    if (canAccess('administrador')) {
-      loadUsuarios();
-    }
+    cargarUsuarios();
+    cargarRoles();
   }, []);
 
-  const loadUsuarios = async () => {
+  const cargarUsuarios = async () => {
     try {
-      setLoading(true);
       const data = await usuariosAPI.getUsuarios();
       setUsuarios(data);
     } catch (error) {
-      setError('Error al cargar usuarios: ' + (error.response?.data?.detail || error.message));
-    } finally {
-      setLoading(false);
+      console.error('Error cargando usuarios:', error);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const cargarRoles = async () => {
     try {
-      if (editingUser) {
-        await usuariosAPI.updateUsuario(editingUser.id, formData);
-      } else {
-        await usuariosAPI.createUsuario(formData);
-      }
-      setShowForm(false);
+      const data = await usuariosAPI.getRoles();
+      setRoles(data);
+    } catch (error) {
+      console.error('Error cargando roles:', error);
+    }
+  };
+
+  const abrirModal = (usuario = null) => {
+    if (usuario) {
+      setEditingUser(usuario);
+      setFormData({
+        username: usuario.username || '',
+        email: usuario.email || '',
+        first_name: usuario.first_name || '',
+        last_name: usuario.last_name || '',
+        password: '',
+        is_active: usuario.is_active || true,
+        rol_id: usuario.rol?.id || ''
+      });
+    } else {
       setEditingUser(null);
       setFormData({
         username: '',
         email: '',
         first_name: '',
         last_name: '',
+        password: '',
         is_active: true,
-        password: ''
+        rol_id: ''
       });
-      loadUsuarios();
-    } catch (error) {
-      setError('Error al guardar usuario: ' + (error.response?.data?.detail || error.message));
     }
+    setShowModal(true);
   };
 
-  const handleEdit = (usuario) => {
-    setEditingUser(usuario);
+  const cerrarModal = () => {
+    setShowModal(false);
+    setEditingUser(null);
     setFormData({
-      username: usuario.username,
-      email: usuario.email,
-      first_name: usuario.first_name || '',
-      last_name: usuario.last_name || '',
-      is_active: usuario.is_active,
-      password: '' // No mostrar la contraseña actual
+      username: '',
+      email: '',
+      first_name: '',
+      last_name: '',
+      password: '',
+      is_active: true,
+      rol_id: ''
     });
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm('¿Está seguro que desea eliminar este usuario?')) {
-      try {
-        await usuariosAPI.deleteUsuario(id);
-        loadUsuarios();
-      } catch (error) {
-        setError('Error al eliminar usuario: ' + (error.response?.data?.detail || error.message));
-      }
-    }
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [name]: type === 'checkbox' ? checked : value
-    });
+    }));
   };
 
-  if (!canAccess('administrador')) {
-    return (
-      <div className="access-denied">
-        <h2>Acceso Denegado</h2>
-        <p>No tiene permisos para acceder a esta sección.</p>
-      </div>
-    );
-  }
+  const [formError, setFormError] = useState('');
 
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Cargando usuarios...</p>
-      </div>
-    );
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    if (!editingUser && !formData.password) {
+      setFormError('La contraseña es obligatoria para crear un usuario.');
+      return;
+    }
+    try {
+      if (editingUser) {
+        await usuariosAPI.updateUsuario(editingUser.id, formData);
+      } else {
+        await usuariosAPI.createUsuario(formData);
+      }
+      cargarUsuarios();
+      cerrarModal();
+    } catch (error) {
+      if (error.response && error.response.data && error.response.data.password) {
+        setFormError(error.response.data.password);
+      } else {
+        setFormError('Error al guardar usuario.');
+      }
+      console.error('Error al guardar usuario:', error);
+    }
+  };
+
+  const eliminarUsuario = async (id) => {
+    if (window.confirm('¿Está seguro de eliminar este usuario?')) {
+      try {
+        await usuariosAPI.deleteUsuario(id);
+        cargarUsuarios();
+      } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+      }
+    }
+  };
 
   return (
     <div className="usuarios-container">
       <div className="usuarios-header">
         <h2>Gestión de Usuarios</h2>
-        <button 
-          className="btn-primary"
-          onClick={() => setShowForm(true)}
-        >
+        <button className="btn-primary" onClick={() => abrirModal()}>
           + Nuevo Usuario
         </button>
       </div>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+      <table className="table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Usuario</th>
+            <th>Email</th>
+            <th>Nombre Completo</th>
+            <th>Estado</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {usuarios.map(usuario => (
+            <tr key={usuario.id}>
+              <td>{usuario.id}</td>
+              <td>{usuario.username}</td>
+              <td>{usuario.email}</td>
+              <td>{`${usuario.first_name || ''} ${usuario.last_name || ''}`.trim() || '-'}</td>
+              <td>
+                <span className={`status-badge ${usuario.is_active ? 'activo' : 'inactivo'}`}>
+                  {usuario.is_active ? 'ACTIVO' : 'INACTIVO'}
+                </span>
+              </td>
+              <td>
+                <span className={`rol-badge ${usuario.rol?.nombre?.toLowerCase() || 'usuario'}`}>
+                  {usuario.rol?.nombre || 'Usuario'}
+                </span>
+              </td>
+              <td className="acciones">
+                <button 
+                  className="btn-accion editar" 
+                  onClick={() => abrirModal(usuario)}
+                  title="Editar"
+                >
+                  ✏️
+                </button>
+                <button 
+                  className="btn-accion eliminar" 
+                  onClick={() => eliminarUsuario(usuario.id)}
+                  title="Eliminar"
+                >
+                  🗑️
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
-      {showForm && (
+      {showModal && (
         <div className="form-modal">
           <div className="form-content">
             <h3>{editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
             <form onSubmit={handleSubmit}>
+              {formError && <div style={{color: 'red', marginBottom: 10}}>{formError}</div>}
               <div className="form-group">
                 <label>Usuario:</label>
-                <input
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  required
+                <input 
+                  type="text" 
+                  name="username" 
+                  value={formData.username} 
+                  onChange={handleChange} 
+                  required 
                 />
               </div>
-              
+
               <div className="form-group">
-                <label>Email:</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
+                <label>Correo electrónico:</label>
+                <input 
+                  type="email" 
+                  name="email" 
+                  value={formData.email} 
+                  onChange={handleChange} 
+                  required 
                 />
               </div>
-              
+
               <div className="form-group">
                 <label>Nombre:</label>
-                <input
-                  type="text"
-                  name="first_name"
-                  value={formData.first_name}
-                  onChange={handleChange}
+                <input 
+                  type="text" 
+                  name="first_name" 
+                  value={formData.first_name} 
+                  onChange={handleChange} 
                 />
               </div>
-              
+
               <div className="form-group">
                 <label>Apellido:</label>
-                <input
-                  type="text"
-                  name="last_name"
-                  value={formData.last_name}
-                  onChange={handleChange}
+                <input 
+                  type="text" 
+                  name="last_name" 
+                  value={formData.last_name} 
+                  onChange={handleChange} 
                 />
               </div>
-              
+
               <div className="form-group">
                 <label>Contraseña:</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required={!editingUser}
+                <input 
+                  type="password" 
+                  name="password" 
+                  value={formData.password} 
+                  onChange={handleChange} 
                   placeholder={editingUser ? "Dejar vacío para mantener la actual" : "Ingrese la contraseña"}
+                  required={!editingUser}
                 />
               </div>
-              
+
+              <div className="form-group">
+                <label>Rol:</label>
+                <select 
+                  name="rol_id" 
+                  value={formData.rol_id} 
+                  onChange={handleChange} 
+                  required
+                >
+                  <option value="">Seleccione un rol</option>
+                  {roles.map(rol => (
+                    <option key={rol.id} value={rol.id}>{rol.nombre}</option>
+                  ))}
+                </select>
+              </div>
               <div className="form-group checkbox-group">
                 <label>
-                  <input
-                    type="checkbox"
-                    name="is_active"
-                    checked={formData.is_active}
-                    onChange={handleChange}
+                  <input 
+                    type="checkbox" 
+                    name="is_active" 
+                    checked={formData.is_active} 
+                    onChange={handleChange} 
                   />
-                  Usuario Activo
+                  Usuario activo
                 </label>
               </div>
-              
+
               <div className="form-actions">
                 <button type="submit" className="btn-primary">
                   {editingUser ? 'Actualizar' : 'Crear'}
                 </button>
-                <button 
-                  type="button" 
-                  className="btn-secondary"
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingUser(null);
-                    setFormData({
-                      username: '',
-                      email: '',
-                      first_name: '',
-                      last_name: '',
-                      is_active: true,
-                      password: ''
-                    });
-                  }}
-                >
+                <button type="button" onClick={cerrarModal} className="btn-secondary">
                   Cancelar
                 </button>
               </div>
@@ -227,60 +284,6 @@ const ListaUsuarios = () => {
           </div>
         </div>
       )}
-
-      <div className="usuarios-table-container">
-        <table className="usuarios-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Usuario</th>
-              <th>Email</th>
-              <th>Nombre Completo</th>
-              <th>Estado</th>
-              <th>Rol</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usuarios.map((usuario) => (
-              <tr key={usuario.id}>
-                <td>{usuario.id}</td>
-                <td>{usuario.username}</td>
-                <td>{usuario.email}</td>
-                <td>{`${usuario.first_name || ''} ${usuario.last_name || ''}`.trim() || '-'}</td>
-                <td>
-                  <span className={`status-badge ${usuario.is_active ? 'active' : 'inactive'}`}>
-                    {usuario.is_active ? 'Activo' : 'Inactivo'}
-                  </span>
-                </td>
-                <td>
-                  <span className={`status-badge role-badge ${usuario.rol?.toLowerCase() || 'usuario'}`}>
-                    {usuario.rol || 'Usuario'}
-                  </span>
-                </td>
-                <td>
-                  <div className="action-buttons">
-                    <button 
-                      className="btn-edit"
-                      onClick={() => handleEdit(usuario)}
-                      title="Editar"
-                    >
-                      ✏️
-                    </button>
-                    <button 
-                      className="btn-delete"
-                      onClick={() => handleDelete(usuario.id)}
-                      title="Eliminar"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 };

@@ -30,7 +30,7 @@ export const testEndpoints = async () => {
     '/auth/login/',
     '/usuarios/usuario/',
     '/usuarios/persona/',
-    '/comunidad/unidad/',
+  '/comunidad/unidades/',
     '/economia/gastos/',
     '/finanzas/pago/'
   ];

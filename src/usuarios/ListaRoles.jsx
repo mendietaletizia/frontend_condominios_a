@@ -6,12 +6,14 @@ import './ListaRoles.css';
 const ListaRoles = () => {
   const { canAccess } = useAuth();
   const [roles, setRoles] = useState([]);
+  const [rolesFront, setRolesFront] = useState([]); // para roles agregados en frontend
+  const [toast, setToast] = useState(null); // feedback visual
+  const [editingFrontIndex, setEditingFrontIndex] = useState(null); // índice del rolFront en edición
   const [permisos, setPermisos] = useState([]);
   const [rolPermisos, setRolPermisos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
-  const [editingRol, setEditingRol] = useState(null);
   const [formData, setFormData] = useState({
     nombre: ''
   });
@@ -40,39 +42,36 @@ const ListaRoles = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    try {
-      if (editingRol) {
-        await api.put(`/usuarios/roles/${editingRol.id}/`, formData);
+    if (formData.nombre.trim()) {
+      if (editingFrontIndex !== null) {
+        // Editar rol existente en rolesFront
+        setRolesFront(prev => prev.map((r, i) => i === editingFrontIndex ? {
+          ...r,
+          nombre: formData.nombre,
+          permisos: formData.permisos
+        } : r));
+        setToast({ type: 'success', msg: 'Rol editado correctamente.' });
       } else {
-        await api.post('/usuarios/roles/', formData);
-      }
-      setShowForm(false);
-      setEditingRol(null);
-      setFormData({ nombre: '' });
-      loadData();
-    } catch (error) {
-      setError('Error al guardar rol: ' + (error.response?.data?.detail || error.message));
-    }
-  };
-
-  const handleEdit = (rol) => {
-    setEditingRol(rol);
-    setFormData({ nombre: rol.nombre });
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm('¿Está seguro que desea eliminar este rol?')) {
-      try {
-        await api.delete(`/usuarios/roles/${id}/`);
-        loadData();
-      } catch (error) {
-        setError('Error al eliminar rol: ' + (error.response?.data?.detail || error.message));
+        // Agregar nuevo rol
+        setRolesFront(prev => [
+          ...prev,
+          {
+            id: roles.length + prev.length + 1,
+            nombre: formData.nombre,
+            permisos: formData.permisos
+          }
+        ]);
+        setToast({ type: 'success', msg: 'Rol creado correctamente.' });
       }
     }
+    setShowForm(false);
+    setFormData({ nombre: '', permisos: [] });
+    setEditingFrontIndex(null);
+    setTimeout(() => setToast(null), 2000);
   };
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -113,12 +112,6 @@ const ListaRoles = () => {
     <div className="roles-container">
       <div className="roles-header">
         <h2>Gestión de Roles y Permisos</h2>
-        <button 
-          className="btn-primary"
-          onClick={() => setShowForm(true)}
-        >
-          + Nuevo Rol
-        </button>
       </div>
 
       {error && (
@@ -130,31 +123,66 @@ const ListaRoles = () => {
       {showForm && (
         <div className="form-modal">
           <div className="form-content">
-            <h3>{editingRol ? 'Editar Rol' : 'Nuevo Rol'}</h3>
-            <form onSubmit={handleSubmit}>
+            <h3>Nuevo Rol</h3>
+            <form onSubmit={e => {e.preventDefault(); setShowForm(false); setFormData({ nombre: '', permisos: [] });}}>
               <div className="form-group">
                 <label>Nombre del Rol:</label>
                 <input
                   type="text"
                   name="nombre"
                   value={formData.nombre}
-                  onChange={handleChange}
+                  onChange={e => setFormData(f => ({...f, nombre: e.target.value}))}
                   required
                   placeholder="Ingrese el nombre del rol"
                 />
               </div>
-              
-              <div className="form-actions">
+              <div className="form-group">
+                <label>Permisos:</label>
+                <div style={{display:'flex',flexWrap:'wrap',gap:'8px',marginTop:'6px'}}>
+                  {[
+                    'Ver usuarios',
+                    'Crear usuarios',
+                    'Editar usuarios',
+                    'Eliminar usuarios',
+                    'Ver roles',
+                    'Editar roles',
+                    'Gestionar accesos',
+                    'Controlar visitas',
+                    'Ver pagos',
+                    'Registrar pagos',
+                    'Ver unidades',
+                    'Gestionar comunidad',
+                    'Ver economía',
+                    'Gestionar mantenimiento',
+                    'Reservar áreas',
+                  ].map((permiso, idx) => (
+                    <label key={idx} style={{background:'#f5f6fa',border:'1px solid #e0e0e0',borderRadius:'12px',padding:'4px 10px',cursor:'pointer',fontSize:'13px'}}>
+                      <input
+                        type="checkbox"
+                        checked={formData.permisos?.includes(permiso)}
+                        onChange={e => {
+                          setFormData(f => {
+                            if (e.target.checked) return {...f, permisos: [...(f.permisos||[]), permiso]};
+                            return {...f, permisos: (f.permisos||[]).filter(p => p !== permiso)};
+                          });
+                        }}
+                        style={{marginRight:'4px'}}
+                      />
+                      {permiso}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="form-actions" style={{marginTop:'18px'}}>
                 <button type="submit" className="btn-primary">
-                  {editingRol ? 'Actualizar' : 'Crear'}
+                  Crear
                 </button>
                 <button 
                   type="button" 
                   className="btn-secondary"
                   onClick={() => {
                     setShowForm(false);
-                    setEditingRol(null);
-                    setFormData({ nombre: '' });
+                    setFormData({ nombre: '', permisos: [] });
                   }}
                 >
                   Cancelar
@@ -165,31 +193,7 @@ const ListaRoles = () => {
         </div>
       )}
 
-      <div className="roles-stats">
-        <div className="stat-card">
-          <div className="stat-icon">🔐</div>
-          <div className="stat-content">
-            <h3>Total Roles</h3>
-            <p className="stat-value">{roles.length}</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">🛡️</div>
-          <div className="stat-content">
-            <h3>Total Permisos</h3>
-            <p className="stat-value">{permisos.length}</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">🔗</div>
-          <div className="stat-content">
-            <h3>Asignaciones</h3>
-            <p className="stat-value">{rolPermisos.length}</p>
-          </div>
-        </div>
-      </div>
+
 
       <div className="roles-sections">
         <div className="roles-section">
@@ -201,12 +205,23 @@ const ListaRoles = () => {
                   <th>ID</th>
                   <th>Nombre del Rol</th>
                   <th>Permisos Asignados</th>
-                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {roles.map((rol) => {
-                  const permisosAsignados = getPermisosForRol(rol.id);
+                {[...roles, ...rolesFront].map((rol, idx) => {
+                  // Permisos simulados por rol
+                  let permisosSimulados = [];
+                  if (rol.permisos && rol.permisos.length > 0) {
+                    permisosSimulados = rol.permisos;
+                  } else if (rol.nombre?.toLowerCase() === 'administrador') {
+                    permisosSimulados = ['Todos los permisos'];
+                  } else if (rol.nombre?.toLowerCase() === 'residente') {
+                    permisosSimulados = ['Ver pagos', 'Ver unidades', 'Reservar áreas', 'Ver economía'];
+                  } else if (rol.nombre?.toLowerCase() === 'empleado') {
+                    permisosSimulados = ['Gestionar comunidad', 'Gestionar mantenimiento', 'Controlar visitas'];
+                  } else if (rol.nombre?.toLowerCase() === 'seguridad') {
+                    permisosSimulados = ['Gestionar accesos', 'Controlar visitas'];
+                  }
                   return (
                     <tr key={rol.id}>
                       <td>{rol.id}</td>
@@ -217,33 +232,15 @@ const ListaRoles = () => {
                       </td>
                       <td>
                         <div className="permisos-list">
-                          {permisosAsignados.length > 0 ? (
-                            permisosAsignados.map((rp, index) => (
-                              <span key={index} className="permiso-badge">
-                                {getPermisoDescripcion(rp.permiso)}
+                          {permisosSimulados.length > 0 ? (
+                            permisosSimulados.map((permiso, index) => (
+                              <span key={index} className="permiso-badge" style={{background:'#e0e7ff',color:'#333',padding:'4px 10px',borderRadius:'12px',marginRight:'6px',fontSize:'13px'}}>
+                                {permiso}
                               </span>
                             ))
                           ) : (
                             <span className="no-permisos">Sin permisos asignados</span>
                           )}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="action-buttons">
-                          <button 
-                            className="btn-edit"
-                            onClick={() => handleEdit(rol)}
-                            title="Editar"
-                          >
-                            ✏️
-                          </button>
-                          <button 
-                            className="btn-delete"
-                            onClick={() => handleDelete(rol.id)}
-                            title="Eliminar"
-                          >
-                            🗑️
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -256,15 +253,32 @@ const ListaRoles = () => {
 
         <div className="permisos-section">
           <h3>Permisos Disponibles</h3>
-          <div className="permisos-grid">
-            {permisos.map((permiso) => (
-              <div key={permiso.id} className="permiso-card">
-                <div className="permiso-id">#{permiso.id}</div>
-                <div className="permiso-descripcion">{permiso.descripcion}</div>
+          <div className="permisos-grid" style={{display:'flex',flexWrap:'wrap',gap:'12px',justifyContent:'center'}}>
+            {/* Lista simulada de permisos */}
+            {[
+              'Ver usuarios',
+              'Crear usuarios',
+              'Editar usuarios',
+              'Eliminar usuarios',
+              'Ver roles',
+              'Editar roles',
+              'Gestionar accesos',
+              'Controlar visitas',
+              'Ver pagos',
+              'Registrar pagos',
+              'Ver unidades',
+              'Gestionar comunidad',
+              'Ver economía',
+              'Gestionar mantenimiento',
+              'Reservar áreas',
+            ].map((permiso, idx) => (
+              <div key={idx} className="permiso-card" style={{background:'#fff',border:'1px solid #e0e0e0',borderRadius:'6px',padding:'10px 18px',minWidth:'180px',boxShadow:'0 1px 4px #eee'}}>
+                <div className="permiso-id">P{idx+1}</div>
+                <div className="permiso-descripcion">{permiso}</div>
               </div>
             ))}
           </div>
-        </div>
+  </div>
       </div>
     </div>
   );

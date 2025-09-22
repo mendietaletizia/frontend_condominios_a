@@ -29,7 +29,6 @@ const IniciarSesion = () => {
     setError('');
 
     const result = await login(formData.username, formData.password);
-    
     if (result.success) {
       // Redirigir según el rol del usuario
       const { rol } = result.user;
@@ -45,9 +44,19 @@ const IniciarSesion = () => {
         navigate('/dashboard');
       }
     } else {
-      setError(result.error);
+      // Mensaje personalizado para error 400 o credenciales
+      let msg = result.error;
+      if (
+        msg?.includes('400') ||
+        msg?.toLowerCase().includes('solicitud falló') ||
+        msg?.toLowerCase().includes('bad request') ||
+        msg?.toLowerCase().includes('credenciales') ||
+        msg?.toLowerCase().includes('no autorizado')
+      ) {
+        msg = 'Usuario o contraseña incorrectos. Por favor, verifica tus datos.';
+      }
+      setError(msg);
     }
-    
     setLoading(false);
   };
 
