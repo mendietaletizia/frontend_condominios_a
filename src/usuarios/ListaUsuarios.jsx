@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message } from 'antd';
+import { UserOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { usuariosAPI } from '../api/usuarios';
 import './ListaUsuarios.css';
+
+const { Option } = Select;
+const { confirm } = Modal;
 
 const ListaUsuarios = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [roles, setRoles] = useState([]);
-  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    first_name: '',
-    last_name: '',
-    password: '',
-    is_active: true,
-    rol_id: ''
-  });
+  const [form] = Form.useForm();
 
   useEffect(() => {
     cargarUsuarios();
@@ -24,26 +23,37 @@ const ListaUsuarios = () => {
 
   const cargarUsuarios = async () => {
     try {
+      setLoading(true);
       const data = await usuariosAPI.getUsuarios();
-      setUsuarios(data);
+      const list = Array.isArray(data)
+        ? data
+        : (Array.isArray(data?.results) ? data.results : (Array.isArray(data?.items) ? data.items : []));
+      setUsuarios(list);
+      setError(null);
     } catch (error) {
       console.error('Error cargando usuarios:', error);
+      setError('Error al cargar usuarios');
+    } finally {
+      setLoading(false);
     }
   };
 
   const cargarRoles = async () => {
     try {
       const data = await usuariosAPI.getRoles();
-      setRoles(data);
+      const list = Array.isArray(data)
+        ? data
+        : (Array.isArray(data?.results) ? data.results : (Array.isArray(data?.items) ? data.items : []));
+      setRoles(list);
     } catch (error) {
       console.error('Error cargando roles:', error);
     }
   };
 
-  const abrirModal = (usuario = null) => {
+  const showModal = (usuario = null) => {
+    setEditingUser(usuario);
     if (usuario) {
-      setEditingUser(usuario);
-      setFormData({
+      form.setFieldsValue({
         username: usuario.username || '',
         email: usuario.email || '',
         first_name: usuario.first_name || '',
@@ -53,237 +63,273 @@ const ListaUsuarios = () => {
         rol_id: usuario.rol?.id || ''
       });
     } else {
-      setEditingUser(null);
-      setFormData({
-        username: '',
-        email: '',
-        first_name: '',
-        last_name: '',
-        password: '',
-        is_active: true,
-        rol_id: ''
-      });
+      form.resetFields();
     }
-    setShowModal(true);
+    setIsModalVisible(true);
   };
 
-  const cerrarModal = () => {
-    setShowModal(false);
+  const handleCancel = () => {
+    setIsModalVisible(false);
     setEditingUser(null);
-    setFormData({
-      username: '',
-      email: '',
-      first_name: '',
-      last_name: '',
-      password: '',
-      is_active: true,
-      rol_id: ''
+    form.resetFields();
+  };
+
+  const handleSubmit = async (values) => {
+    try {
+      if (editingUser) {
+        await usuariosAPI.updateUsuario(editingUser.id, values);
+        message.success('Usuario actualizado exitosamente');
+      } else {
+        await usuariosAPI.createUsuario(values);
+        message.success('Usuario creado exitosamente');
+      }
+      handleCancel();
+      cargarUsuarios();
+    } catch (error) {
+      console.error('Error al guardar usuario:', error);
+      message.error('Error al guardar usuario');
+    }
+  };
+
+  const handleDelete = (id) => {
+    confirm({
+      title: '¿Está seguro de eliminar este usuario?',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Esta acción no se puede deshacer.',
+      okText: 'Sí, eliminar',
+      okType: 'danger',
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        try {
+          await usuariosAPI.deleteUsuario(id);
+          message.success('Usuario eliminado exitosamente');
+          cargarUsuarios();
+        } catch (error) {
+          console.error('Error al eliminar usuario:', error);
+          message.error('Error al eliminar usuario');
+        }
+      },
     });
   };
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
+  const columns = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+    },
+    {
+      title: 'Usuario',
+      dataIndex: 'username',
+      key: 'username',
+      render: (username) => <strong>{username}</strong>,
+    },
+    {
+      title: 'Email',
+      dataIndex: 'email',
+      key: 'email',
+    },
+    {
+      title: 'Nombre Completo',
+      key: 'fullname',
+      render: (_, record) => {
+        const fullName = `${record.first_name || ''} ${record.last_name || ''}`.trim();
+        return fullName || '-';
+      },
+    },
+    {
+      title: 'Estado',
+      dataIndex: 'is_active',
+      key: 'estado',
+      render: (isActive) => (
+        <Tag color={isActive ? 'success' : 'default'}>
+          {isActive ? 'ACTIVO' : 'INACTIVO'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Rol',
+      key: 'rol',
+      render: (_, record) => {
+        const rolName = record.rol?.nombre || record.rol || 'Usuario';
+        const color = rolName.toLowerCase() === 'administrador' ? 'blue' : 
+                     rolName.toLowerCase() === 'residente' ? 'green' : 
+                     rolName.toLowerCase() === 'seguridad' ? 'orange' : 'default';
+        return <Tag color={color}>{rolName}</Tag>;
+      },
+    },
+    {
+      title: 'Acciones',
+      key: 'acciones',
+      render: (_, record) => (
+        <Space>
+          <Button
+            type="link"
+            icon={<EditOutlined />}
+            onClick={() => showModal(record)}
+            size="small"
+          >
+            Editar
+          </Button>
+          <Button
+            type="link"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record.id)}
+            size="small"
+          >
+            Eliminar
+          </Button>
+        </Space>
+      ),
+    },
+  ];
 
-  const [formError, setFormError] = useState('');
+  if (loading) {
+    return (
+      <div className="dashboard-loading">
+        <div>Cargando usuarios...</div>
+      </div>
+    );
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setFormError('');
-    if (!editingUser && !formData.password) {
-      setFormError('La contraseña es obligatoria para crear un usuario.');
-      return;
-    }
-    try {
-      if (editingUser) {
-        await usuariosAPI.updateUsuario(editingUser.id, formData);
-      } else {
-        await usuariosAPI.createUsuario(formData);
-      }
-      cargarUsuarios();
-      cerrarModal();
-    } catch (error) {
-      if (error.response && error.response.data && error.response.data.password) {
-        setFormError(error.response.data.password);
-      } else {
-        setFormError('Error al guardar usuario.');
-      }
-      console.error('Error al guardar usuario:', error);
-    }
-  };
-
-  const eliminarUsuario = async (id) => {
-    if (window.confirm('¿Está seguro de eliminar este usuario?')) {
-      try {
-        await usuariosAPI.deleteUsuario(id);
-        cargarUsuarios();
-      } catch (error) {
-        console.error('Error al eliminar usuario:', error);
-      }
-    }
-  };
+  if (error) {
+    return (
+      <div className="error-message">
+        {error}
+        <Button size="small" onClick={cargarUsuarios} style={{ marginLeft: 10 }}>
+          Reintentar
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="usuarios-container">
-      <div className="usuarios-header">
-        <h2>Gestión de Usuarios</h2>
-        <button className="btn-primary" onClick={() => abrirModal()}>
-          + Nuevo Usuario
-        </button>
+    <div className="dashboard-usuarios">
+      <div className="dashboard-header">
+        <h1>
+          <UserOutlined /> Gestión de Usuarios
+        </h1>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
+          Nuevo Usuario
+        </Button>
       </div>
 
-      <table className="table-striped">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Usuario</th>
-            <th>Email</th>
-            <th>Nombre Completo</th>
-            <th>Estado</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuarios.map(usuario => (
-            <tr key={usuario.id}>
-              <td>{usuario.id}</td>
-              <td>{usuario.username}</td>
-              <td>{usuario.email}</td>
-              <td>{`${usuario.first_name || ''} ${usuario.last_name || ''}`.trim() || '-'}</td>
-              <td>
-                <span className={`status-badge ${usuario.is_active ? 'activo' : 'inactivo'}`}>
-                  {usuario.is_active ? 'ACTIVO' : 'INACTIVO'}
-                </span>
-              </td>
-              <td>
-                <span className={`rol-badge ${usuario.rol?.nombre?.toLowerCase() || 'usuario'}`}>
-                  {usuario.rol?.nombre || 'Usuario'}
-                </span>
-              </td>
-              <td className="acciones">
-                <button 
-                  className="btn-accion editar" 
-                  onClick={() => abrirModal(usuario)}
-                  title="Editar"
-                >
-                  ✏️
-                </button>
-                <button 
-                  className="btn-accion eliminar" 
-                  onClick={() => eliminarUsuario(usuario.id)}
-                  title="Eliminar"
-                >
-                  🗑️
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Tabla de Usuarios */}
+      <Card
+        title="Lista de Usuarios del Sistema"
+        className="usuarios-table"
+        extra={
+          <Button type="link" size="small" onClick={cargarUsuarios}>
+            Actualizar
+          </Button>
+        }
+      >
+        <Table
+          columns={columns}
+          dataSource={usuarios}
+          rowKey="id"
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `Mostrando ${range[0]}-${range[1]} de ${total} usuarios`,
+          }}
+          scroll={false}
+        />
+      </Card>
 
-      {showModal && (
-        <div className="form-modal">
-          <div className="form-content">
-            <h3>{editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
-            <form onSubmit={handleSubmit}>
-              {formError && <div style={{color: 'red', marginBottom: 10}}>{formError}</div>}
-              <div className="form-group">
-                <label>Usuario:</label>
-                <input 
-                  type="text" 
-                  name="username" 
-                  value={formData.username} 
-                  onChange={handleChange} 
-                  required 
-                />
-              </div>
+      {/* Modal para crear/editar usuario */}
+      <Modal
+        title={editingUser ? 'Editar Usuario' : 'Crear Nuevo Usuario'}
+        open={isModalVisible}
+        onCancel={handleCancel}
+        footer={null}
+        width={600}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+        >
+          <Form.Item
+            name="username"
+            label="Usuario"
+            rules={[{ required: true, message: 'Por favor ingrese el nombre de usuario' }]}
+          >
+            <Input placeholder="Nombre de usuario" />
+          </Form.Item>
 
-              <div className="form-group">
-                <label>Correo electrónico:</label>
-                <input 
-                  type="email" 
-                  name="email" 
-                  value={formData.email} 
-                  onChange={handleChange} 
-                  required 
-                />
-              </div>
+          <Form.Item
+            name="email"
+            label="Correo electrónico"
+            rules={[
+              { required: true, message: 'Por favor ingrese el email' },
+              { type: 'email', message: 'Email inválido' }
+            ]}
+          >
+            <Input placeholder="usuario@ejemplo.com" />
+          </Form.Item>
 
-              <div className="form-group">
-                <label>Nombre:</label>
-                <input 
-                  type="text" 
-                  name="first_name" 
-                  value={formData.first_name} 
-                  onChange={handleChange} 
-                />
-              </div>
+          <Form.Item
+            name="first_name"
+            label="Nombre"
+          >
+            <Input placeholder="Nombre" />
+          </Form.Item>
 
-              <div className="form-group">
-                <label>Apellido:</label>
-                <input 
-                  type="text" 
-                  name="last_name" 
-                  value={formData.last_name} 
-                  onChange={handleChange} 
-                />
-              </div>
+          <Form.Item
+            name="last_name"
+            label="Apellido"
+          >
+            <Input placeholder="Apellido" />
+          </Form.Item>
 
-              <div className="form-group">
-                <label>Contraseña:</label>
-                <input 
-                  type="password" 
-                  name="password" 
-                  value={formData.password} 
-                  onChange={handleChange} 
-                  placeholder={editingUser ? "Dejar vacío para mantener la actual" : "Ingrese la contraseña"}
-                  required={!editingUser}
-                />
-              </div>
+          <Form.Item
+            name="password"
+            label="Contraseña"
+            rules={[
+              { required: !editingUser, message: 'Por favor ingrese la contraseña' }
+            ]}
+          >
+            <Input.Password 
+              placeholder={editingUser ? "Dejar vacío para mantener la actual" : "Contraseña"} 
+            />
+          </Form.Item>
 
-              <div className="form-group">
-                <label>Rol:</label>
-                <select 
-                  name="rol_id" 
-                  value={formData.rol_id} 
-                  onChange={handleChange} 
-                  required
-                >
-                  <option value="">Seleccione un rol</option>
-                  {roles.map(rol => (
-                    <option key={rol.id} value={rol.id}>{rol.nombre}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group checkbox-group">
-                <label>
-                  <input 
-                    type="checkbox" 
-                    name="is_active" 
-                    checked={formData.is_active} 
-                    onChange={handleChange} 
-                  />
-                  Usuario activo
-                </label>
-              </div>
+          <Form.Item
+            name="rol_id"
+            label="Rol"
+            rules={[{ required: true, message: 'Por favor seleccione un rol' }]}
+          >
+            <Select placeholder="Seleccione un rol">
+              {roles.map(rol => (
+                <Option key={rol.id} value={rol.id}>{rol.nombre}</Option>
+              ))}
+            </Select>
+          </Form.Item>
 
-              <div className="form-actions">
-                <button type="submit" className="btn-primary">
-                  {editingUser ? 'Actualizar' : 'Crear'}
-                </button>
-                <button type="button" onClick={cerrarModal} className="btn-secondary">
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          <Form.Item
+            name="is_active"
+            label="Estado"
+            valuePropName="checked"
+          >
+            <input type="checkbox" /> Usuario activo
+          </Form.Item>
+
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                {editingUser ? 'Actualizar' : 'Crear'}
+              </Button>
+              <Button onClick={handleCancel}>
+                Cancelar
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

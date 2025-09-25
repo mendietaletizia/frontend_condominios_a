@@ -32,9 +32,12 @@ const ListaRoles = () => {
         api.get('/usuarios/permiso/'),
         api.get('/usuarios/rol-permiso/')
       ]);
-      setRoles(rolesRes.data);
-      setPermisos(permisosRes.data);
-      setRolPermisos(rolPermisosRes.data);
+      const rolesList = Array.isArray(rolesRes.data) ? rolesRes.data : (Array.isArray(rolesRes.data?.results) ? rolesRes.data.results : []);
+      const permisosList = Array.isArray(permisosRes.data) ? permisosRes.data : (Array.isArray(permisosRes.data?.results) ? permisosRes.data.results : []);
+      const rpList = Array.isArray(rolPermisosRes.data) ? rolPermisosRes.data : (Array.isArray(rolPermisosRes.data?.results) ? rolPermisosRes.data.results : []);
+      setRoles(rolesList);
+      setPermisos(permisosList);
+      setRolPermisos(rpList);
     } catch (error) {
       setError('Error al cargar datos: ' + (error.response?.data?.detail || error.message));
     } finally {
@@ -199,7 +202,7 @@ const ListaRoles = () => {
         <div className="roles-section">
           <h3>Roles del Sistema</h3>
           <div className="roles-table-container">
-            <table className="roles-table">
+            <table className="roles-table" style={{tableLayout:'auto'}}>
               <thead>
                 <tr>
                   <th>ID</th>

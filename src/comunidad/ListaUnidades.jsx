@@ -122,8 +122,9 @@ const ListaUnidades = () => {
   }
 
   return (
-    <div className="unidades-container">
-      <div className="unidades-header">
+    <div className="page unidades-container">
+      <div className="section">
+        <div className="unidades-header">
         <h2>Gestión de Unidades Habitacionales</h2>
         <button 
           className="btn-primary"
@@ -331,6 +332,7 @@ const ListaUnidades = () => {
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );

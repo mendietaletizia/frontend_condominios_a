@@ -13,6 +13,8 @@ import ListaUnidades from '../comunidad/ListaUnidades';
 import ListaGastos from '../economia/ListaGastos';
 import ListaMultas from '../economia/ListaMultas';
 import ListaPagos from '../finanzas/ListaPagos';
+import DashboardAcceso from '../acceso/DashboardAcceso';
+import DashboardInvitados from '../invitados/DashboardInvitados';
 import Layout from '../components/Layout';
 
 // Componente para rutas protegidas
@@ -73,27 +75,21 @@ const AppRouter = () => {
           <Route path="dashboard" element={<Dashboard />} />
 
           {/* ===== AUTENTICACIÓN Y ACCESOS ===== */}
-          <Route 
-            path="accesos" 
+          <Route
+            path="accesos"
             element={
               <ProtectedRoute requiredRoles={['administrador', 'seguridad']}>
-                <NotImplemented 
-                  title="CU14 - Gestión de Accesos"
-                  description="Sistema de gestión y control de accesos al condominio con registro de entradas y salidas."
-                />
+                <DashboardAcceso />
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="visitas" 
+          <Route
+            path="invitados"
             element={
-              <ProtectedRoute requiredRoles={['administrador', 'seguridad']}>
-                <NotImplemented 
-                  title="CU15 - Control de Visitas"
-                  description="Sistema de registro y control de visitas al condominio con autorización de residentes."
-                />
+              <ProtectedRoute requiredRoles={['administrador', 'seguridad', 'residente']}>
+                <DashboardInvitados />
               </ProtectedRoute>
-            } 
+            }
           />
 
           {/* ===== USUARIOS Y ROLES ===== */}

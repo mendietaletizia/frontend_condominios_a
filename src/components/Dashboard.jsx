@@ -48,47 +48,62 @@ const Dashboard = () => {
 
   const renderAdminDashboard = () => (
     <div className="dashboard-admin">
-      <h2>Dashboard Administrativo</h2>
-      
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">💰</div>
-          <div className="stat-content">
-            <h3>Total Pagos</h3>
-            <p className="stat-value">${stats.financiero?.total_pagos || 0}</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">📊</div>
-          <div className="stat-content">
-            <h3>Total Expensas</h3>
-            <p className="stat-value">${stats.financiero?.total_expensas || 0}</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">💸</div>
-          <div className="stat-content">
-            <h3>Total Gastos</h3>
-            <p className="stat-value">${stats.financiero?.total_gastos || 0}</p>
-          </div>
-        </div>
-        
-        <div className="stat-card">
-          <div className="stat-icon">⚠️</div>
-          <div className="stat-content">
-            <h3>Total Multas</h3>
-            <p className="stat-value">${stats.financiero?.total_multas || 0}</p>
-          </div>
-        </div>
-      </div>
+      <div className="dashboard-sections">
+        <div className="dashboard-section">
+          <h3>Estadísticas Financieras</h3>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-icon">💰</div>
+              <div className="stat-content">
+                <h4>Total Pagos</h4>
+                <p className="stat-value">${stats.financiero?.total_pagos || 0}</p>
+              </div>
+            </div>
 
-      <div className="dashboard-section">
-        <h3>Análisis de Morosidad</h3>
-        <div className="morosidad-info">
-          <p><strong>Total en Morosidad:</strong> ${stats.morosidad?.estadisticas?.total_morosidad || 0}</p>
-          <p><strong>Residentes Morosos:</strong> {stats.morosidad?.estadisticas?.cantidad_morosos || 0}</p>
+            <div className="stat-card">
+              <div className="stat-icon">📊</div>
+              <div className="stat-content">
+                <h4>Total Expensas</h4>
+                <p className="stat-value">${stats.financiero?.total_expensas || 0}</p>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon">💸</div>
+              <div className="stat-content">
+                <h4>Total Gastos</h4>
+                <p className="stat-value">${stats.financiero?.total_gastos || 0}</p>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon">⚠️</div>
+              <div className="stat-content">
+                <h4>Total Multas</h4>
+                <p className="stat-value">${stats.financiero?.total_multas || 0}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="dashboard-section">
+          <h3>Análisis de Morosidad</h3>
+          <div className="morosidad-info">
+            <div className="morosidad-card">
+              <div className="morosidad-icon">📈</div>
+              <div className="morosidad-content">
+                <p><strong>Total en Morosidad:</strong></p>
+                <p className="morosidad-value">${stats.morosidad?.estadisticas?.total_morosidad || 0}</p>
+              </div>
+            </div>
+            <div className="morosidad-card">
+              <div className="morosidad-icon">👥</div>
+              <div className="morosidad-content">
+                <p><strong>Residentes Morosos:</strong></p>
+                <p className="morosidad-value">{stats.morosidad?.estadisticas?.cantidad_morosos || 0}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -139,11 +154,13 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="dashboard">
-      {canAccess('administrador') && renderAdminDashboard()}
-      {canAccess('residente') && renderResidentDashboard()}
-      {canAccess('empleado') && renderEmployeeDashboard()}
-      {canAccess('seguridad') && renderSecurityDashboard()}
+    <div className="dashboard-page">
+      <div className="dashboard-content">
+        {canAccess('administrador') && renderAdminDashboard()}
+        {canAccess('residente') && renderResidentDashboard()}
+        {canAccess('empleado') && renderEmployeeDashboard()}
+        {canAccess('seguridad') && renderSecurityDashboard()}
+      </div>
     </div>
   );
 };

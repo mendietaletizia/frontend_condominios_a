@@ -2,6 +2,7 @@
   padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .roles-header {
@@ -246,7 +247,7 @@
 
 /* Tabla de roles */
 .roles-table-container {
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
 .roles-table {

@@ -31,7 +31,6 @@ api.interceptors.response.use(
   (response) => {
     // Log de respuestas exitosas en desarrollo
     if (process.env.NODE_ENV === 'development') {
-      console.log('API Response:', response.config.url, response.status, response.data);
     }
     return response;
   },

@@ -19,7 +19,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
         icon: '🔐',
         cases: [
           { id: 'cu14', label: 'CU14 - Gestión de Accesos', path: '/accesos', implemented: true, roles: ['administrador', 'seguridad'] },
-          { id: 'cu15', label: 'CU15 - Control de Visitas', path: '/visitas', implemented: true, roles: ['administrador', 'seguridad'] }
+          { id: 'cu15', label: 'CU15 - Gestión de Invitados', path: '/invitados', implemented: true, roles: ['administrador', 'seguridad', 'residente'] }
         ]
       },
       {
@@ -114,14 +114,29 @@ const Sidebar = ({ isOpen, onToggle }) => {
     return location.pathname === path;
   };
 
+  const handleBackdropClick = () => {
+    if (onToggle) {
+      onToggle();
+    }
+  };
+
   return (
-    <div className={`sidebar ${isOpen ? 'open' : ''}`}>
-      <div className="sidebar-header">
-        <h3>Sistema Condominio</h3>
-        <div className="user-role-badge">
-          {user?.rol}
+    <>
+      {/* Backdrop for mobile */}
+      {isOpen && (
+        <div
+          className="sidebar-backdrop show"
+          onClick={handleBackdropClick}
+        />
+      )}
+
+      <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <h3>Sistema Condominio</h3>
+          <div className="user-role-badge">
+            {user?.rol}
+          </div>
         </div>
-      </div>
       
       <nav className="sidebar-nav">
         <ul className="nav-list">
@@ -175,6 +190,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
         </ul>
       </nav>
     </div>
+    </>
   );
 };
 

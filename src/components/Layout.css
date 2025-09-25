@@ -1,6 +1,7 @@
 .layout {
   display: flex;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .layout-main {
@@ -50,6 +51,15 @@
   flex: 1;
   padding: 0;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Asegurar que el contenido e imágenes aprovechen todo el ancho disponible */
+.layout-content img,
+.layout-main img {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
 /* Responsive */

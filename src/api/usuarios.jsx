@@ -67,21 +67,16 @@ export const usuariosAPI = {
     try {
       // Validar datos antes de enviar
       if (!residenteData.nombre) {
-        console.error('❌ El campo nombre es obligatorio:', residenteData);
         throw new Error('El campo nombre es obligatorio.');
       }
 
       if (residenteData.ci && residenteData.ci.length > 20) {
-        console.error('❌ El campo CI excede el límite de caracteres:', residenteData.ci);
         throw new Error('El campo CI no puede exceder los 20 caracteres.');
       }
 
-      console.log('📤 Enviando datos para crear residente:', residenteData);
       const response = await api.post('/usuarios/persona/', residenteData);
-      console.log('✅ Residente creado exitosamente:', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ Error al crear residente:', error.response?.data || error);
       throw error;
     }
   },

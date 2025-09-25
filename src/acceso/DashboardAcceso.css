@@ -1,0 +1,266 @@
+.dashboard-acceso {
+  padding: 20px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 0 4px;
+}
+
+.dashboard-header h1 {
+  color: #1890ff;
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.dashboard-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  font-size: 16px;
+  color: #666;
+}
+
+.stats-row {
+  margin-bottom: 24px;
+}
+
+.metrics-row {
+  margin-bottom: 24px;
+}
+
+.metrics-card {
+  height: 100%;
+}
+
+.metrics-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.metric-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.metric-item:last-child {
+  border-bottom: none;
+}
+
+.metric-label {
+  font-size: 14px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.metric-value.success {
+  color: #52c41a;
+}
+
+.metric-value.error {
+  color: #ff4d4f;
+}
+
+.metric-value.warning {
+  color: #faad14;
+}
+
+.recent-records {
+  margin-bottom: 24px;
+}
+
+.recent-records .ant-table-tbody > tr > td {
+  padding: 8px 16px;
+}
+
+.quick-actions {
+  text-align: center;
+}
+
+.quick-actions .ant-btn {
+  margin: 0 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .dashboard-header h1 {
+    font-size: 24px;
+  }
+
+  .stats-row .ant-col {
+    margin-bottom: 16px;
+  }
+
+  .metrics-content {
+    padding: 0 16px;
+  }
+
+  .metric-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .metric-value {
+    font-size: 20px;
+  }
+
+  .recent-records .ant-table {
+    font-size: 12px;
+  }
+
+  .recent-records .ant-table-thead > tr > th {
+    padding: 8px 4px;
+  }
+
+  .recent-records .ant-table-tbody > tr > td {
+    padding: 8px 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-acceso {
+    padding: 12px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 20px;
+  }
+
+  .stats-row {
+    margin-bottom: 16px;
+  }
+
+  .metrics-row {
+    margin-bottom: 16px;
+  }
+
+  .quick-actions .ant-btn {
+    margin: 4px;
+    font-size: 12px;
+  }
+}
+
+/* Animations */
+.dashboard-acceso .ant-card {
+  transition: all 0.3s ease;
+}
+
+.dashboard-acceso .ant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.metric-item {
+  transition: all 0.3s ease;
+}
+
+.metric-item:hover {
+  background-color: #f9f9f9;
+  padding-left: 8px;
+  padding-right: 8px;
+  margin-left: -8px;
+  margin-right: -8px;
+  border-radius: 4px;
+}
+
+/* Custom Progress Bar Colors */
+.dashboard-acceso .ant-progress-bg {
+  height: 8px !important;
+}
+
+.dashboard-acceso .ant-progress-text {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Status Tags */
+.dashboard-acceso .ant-tag {
+  font-weight: 500;
+  border-radius: 12px;
+  padding: 4px 12px;
+}
+
+.dashboard-acceso .ant-tag-success {
+  background-color: #f6ffed;
+  border-color: #b7eb8f;
+  color: #52c41a;
+}
+
+.dashboard-acceso .ant-tag-error {
+  background-color: #fff2f0;
+  border-color: #ffccc7;
+  color: #ff4d4f;
+}
+
+.dashboard-acceso .ant-tag-warning {
+  background-color: #fffbe6;
+  border-color: #ffd591;
+  color: #faad14;
+}
+
+/* Loading Animation */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.dashboard-loading {
+  animation: pulse 2s infinite;
+}
+
+/* Scrollbar Styling */
+.recent-records .ant-table-body {
+  scrollbar-width: thin;
+  scrollbar-color: #d9d9d9 #f5f5f5;
+}
+
+.recent-records .ant-table-body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.recent-records .ant-table-body::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 3px;
+}
+
+.recent-records .ant-table-body::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 3px;
+}
+
+.recent-records .ant-table-body::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
+}

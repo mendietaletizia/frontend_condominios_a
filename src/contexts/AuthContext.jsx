@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../api';
+import { authAPI } from '../api/auth';
 
 const AuthContext = createContext();
 
@@ -30,18 +30,17 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      console.log('Intentando login con:', { username, password });
       
       const response = await authAPI.login(username, password);
-      console.log('Respuesta del servidor:', response);
-      
-      const { token: newToken, username: userUsername, email, rol, user_id } = response;
-      
+
+      const { token: newToken, username: userUsername, email, rol, user_id, residente_id } = response;
+
       const userData = {
         id: user_id,
         username: userUsername,
         email,
         rol,
+        residente_id,
       };
 
       // Guardar en localStorage

@@ -142,8 +142,9 @@ const ListaPagos = () => {
   }
 
   return (
-    <div className="pagos-container">
-      <div className="pagos-header">
+    <div className="page pagos-container">
+      <div className="section">
+        <div className="pagos-header">
         <h2>
           {canAccess('administrador') ? 'Gestión de Pagos' : 'Mis Pagos'}
         </h2>
@@ -366,6 +367,7 @@ const ListaPagos = () => {
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

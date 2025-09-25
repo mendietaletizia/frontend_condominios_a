@@ -133,8 +133,9 @@ const ListaMultas = () => {
   }
 
   return (
-    <div className="multas-container">
-      <div className="multas-header">
+    <div className="page multas-container">
+      <div className="section">
+        <div className="multas-header">
         <h2>Gestión de Multas y Sanciones</h2>
         <button 
           className="btn-primary"
@@ -321,6 +322,7 @@ const ListaMultas = () => {
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

@@ -36,7 +36,6 @@ const ListaResidentes = () => {
 
   const loadUsuariosResidentes = async () => {
     try {
-      console.log('👥 Cargando usuarios residentes...');
       const usuarios = await usuariosAPI.getUsuarios();
       
       // Filtrar usuarios con rol residente (tanto por string como por objeto)
@@ -49,10 +48,8 @@ const ListaResidentes = () => {
         return false;
       });
       
-      console.log('🏠 Usuarios residentes encontrados:', usuariosResidentes.length);
       setUsuariosResidentes(usuariosResidentes);
     } catch (error) {
-      console.error('❌ Error cargando usuarios residentes:', error);
       setUsuariosResidentes([]);
     }
   };
@@ -60,7 +57,6 @@ const ListaResidentes = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      console.log('🔄 Cargando datos de residentes...');
 
       // Traer datos básicos
       const [personasRes, residentesRes, relacionesRes, unidadesRes] = await Promise.all([
@@ -70,10 +66,6 @@ const ListaResidentes = () => {
         api.get('/comunidad/unidades/')
       ]);
 
-      console.log('📥 Personas recibidas:', personasRes.data);
-      console.log('📥 Residentes recibidos:', residentesRes.data);
-      console.log('📥 Relaciones recibidas:', relacionesRes.data);
-      console.log('📥 Unidades recibidas:', unidadesRes.data);
 
       setPersonas(personasRes.data);
       setResidentesRaw(residentesRes.data);
@@ -103,10 +95,8 @@ const ListaResidentes = () => {
         };
       });
 
-      console.log('👥 Residentes procesados:', residentesTabla);
       setResidentes(residentesTabla);
     } catch (error) {
-      console.error('❌ Error cargando datos:', error);
       setError('Error al cargar datos: ' + (error.response?.data?.detail || error.message));
     } finally {
       setLoading(false);
@@ -116,7 +106,6 @@ const ListaResidentes = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      console.log('📝 Guardando residente:', formData);
       
       if (editingResidente) {
         // Modo edición
@@ -132,7 +121,6 @@ const ListaResidentes = () => {
         telefono: formData.telefono
       });
       const personaId = personaRes.data.id;
-      console.log('✅ Persona creada con ID:', personaId);
 
       // 2. Crear residente (con usuario_asociado si aplica)
       const residenteData = {
@@ -143,7 +131,6 @@ const ListaResidentes = () => {
       
       const residenteRes = await api.post('/usuarios/residentes/', residenteData);
       const residenteId = residenteRes.data.id;
-      console.log('✅ Residente creado con ID:', residenteId);
 
       // 3. Crear relación ResidentesUnidad SOLO si se seleccionó una unidad
       if (formData.unidad) {
@@ -155,9 +142,7 @@ const ListaResidentes = () => {
           estado: true
         };
         
-        console.log('🏠 Creando relación con unidad:', relacionData);
         await api.post('/comunidad/residentes-unidad/', relacionData);
-        console.log('✅ Relación unidad creada');
       }
 
       setShowForm(false);
@@ -177,7 +162,6 @@ const ListaResidentes = () => {
       await loadData();
       
     } catch (error) {
-      console.error('❌ Error al guardar:', error.response?.data || error);
       setError('Error al guardar residente: ' + (error.response?.data?.detail || error.response?.data?.error || error.message));
     }
   };
@@ -185,31 +169,25 @@ const ListaResidentes = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      console.log('📝 Actualizando residente:', editingResidente.id, formData);
       
       // Validar datos antes de enviar
       if (!formData.nombre || !formData.ci) {
-        console.error('❌ Datos incompletos para guardar persona:', formData);
         setError('El nombre y el CI son obligatorios.');
         return;
       }
 
       if (formData.ci.length > 20) {
-        console.error('❌ El CI excede el límite de caracteres:', formData.ci);
         setError('El CI no puede exceder los 20 caracteres.');
         return;
       }
 
       // Validar que el residente y la persona asociada existan
       if (!editingResidente || !editingResidente.persona_id) {
-        console.error('❌ Residente o persona asociada no encontrados para actualizar:', editingResidente);
         setError('No se puede actualizar porque no se encontró el residente o la persona asociada.');
         return;
       }
 
-      console.log('📝 Actualizando residente y persona asociada:', editingResidente.id, editingResidente.persona_id);
       
-      console.log('📤 Enviando datos para guardar persona:', formData);
       
       // 1. Actualizar persona
       if (editingResidente.persona_id) {
@@ -219,7 +197,6 @@ const ListaResidentes = () => {
           email: formData.email,
           telefono: formData.telefono
         });
-        console.log('✅ Persona actualizada');
       }
       
       // 2. Actualizar residente
@@ -228,7 +205,6 @@ const ListaResidentes = () => {
         usuario: editingResidente.usuario,
         usuario_asociado: formData.usuario_asociado || null
       });
-      console.log('✅ Residente actualizado');
 
       // 3. Actualizar o crear relación ResidentesUnidad
       if (formData.unidad) {
@@ -243,16 +219,13 @@ const ListaResidentes = () => {
         if (editingResidente.rel_id) {
           // Actualizar relación existente
           await api.put(`/comunidad/residentes-unidad/${editingResidente.rel_id}/`, relacionData);
-          console.log('✅ Relación actualizada');
         } else {
           // Crear nueva relación
           await api.post('/comunidad/residentes-unidad/', relacionData);
-          console.log('✅ Nueva relación creada');
         }
       } else if (editingResidente.rel_id) {
         // Eliminar relación si ya no tiene unidad
         await api.delete(`/comunidad/residentes-unidad/${editingResidente.rel_id}/`);
-        console.log('✅ Relación eliminada');
       }
 
       setShowForm(false);
@@ -271,13 +244,11 @@ const ListaResidentes = () => {
       await loadData();
       
     } catch (error) {
-      console.error('❌ Error al actualizar:', error.response?.data || error);
       setError('Error al actualizar residente: ' + (error.response?.data?.detail || error.response?.data?.error || error.message));
     }
   };
 
   const handleEdit = (residente) => {
-    console.log('✏️ Editando residente:', residente);
     setEditingResidente(residente);
     setFormData({
       ci: residente.ci !== '-' ? residente.ci : '',
@@ -294,7 +265,6 @@ const ListaResidentes = () => {
   const handleDelete = async (id) => {
     if (window.confirm('¿Está seguro que desea eliminar este residente? Esta acción no se puede deshacer.')) {
       try {
-        console.log('🗑️ Eliminando residente:', id);
         
         // Buscar el residente y su información
         const residente = residentesRaw.find(r => r.id === id);
@@ -303,37 +273,30 @@ const ListaResidentes = () => {
         }
         
         const personaId = residente.persona;
-        console.log('👤 Persona asociada:', personaId);
         
         // 1. Eliminar relación ResidentesUnidad si existe
         const rel = relaciones.find(r => r.id_residente === id);
         if (rel) {
           await api.delete(`/comunidad/residentes-unidad/${rel.id}/`);
-          console.log('✅ Relación unidad eliminada');
         }
         
         // 2. Eliminar residente
         await api.delete(`/usuarios/residentes/${id}/`);
-        console.log('✅ Residente eliminado');
         
         // 3. Eliminar persona
         // Verificar que la persona asociada exista antes de eliminar
         if (!editingResidente.persona_id) {
-          console.error('❌ No se encontró una persona asociada para eliminar:', editingResidente);
           setError('No se puede eliminar porque no se encontró una persona asociada.');
           return;
         }
 
-        console.log('🗑️ Eliminando persona asociada:', editingResidente.persona_id);
         await api.delete(`/usuarios/persona/${personaId}/`);
-        console.log('✅ Persona eliminada');
         
         // Recargar datos
         await loadUsuariosResidentes();
         await loadData();
         
       } catch (error) {
-        console.error('❌ Error al eliminar:', error.response?.data || error);
         setError('Error al eliminar residente: ' + (error.response?.data?.detail || error.response?.data?.error || error.message));
       }
     }

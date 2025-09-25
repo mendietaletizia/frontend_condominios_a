@@ -13,6 +13,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #f8f9fa;
   color: #333;
+  overflow-x: hidden;
 }
 
 /* Estilos globales para la aplicación */
@@ -42,3 +43,42 @@ body {
 }
 
 /* Estilos globales adicionales */
+
+/* Utilidades de layout consistentes para todas las vistas */
+.page {
+  width: 100%;
+  padding: 24px 20px;
+}
+
+.section {
+  background: #fff;
+  border: 1px solid #e1e5e9;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.grid {
+  display: grid;
+  gap: 20px;
+}
+
+.grid.cols-auto {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.card {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 16px;
+  }
+  .section {
+    padding: 20px;
+  }
+}

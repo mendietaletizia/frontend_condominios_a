@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { testConnection, testLogin } from '../api/testConnection';
+
 import './IniciarSesion.css';
 
 const IniciarSesion = () => {
@@ -11,7 +11,7 @@ const IniciarSesion = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState(null);
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -60,69 +60,61 @@ const IniciarSesion = () => {
     setLoading(false);
   };
 
-  const handleTestConnection = async () => {
-    setConnectionStatus('Probando...');
-    const isConnected = await testConnection();
-    setConnectionStatus(isConnected ? '✅ Conectado' : '❌ Sin conexión');
-  };
 
-  const handleTestLogin = async () => {
-    setLoading(true);
-    setError('');
-    
-    try {
-      const result = await testLogin('jael', 'password123');
-      if (result) {
-        setError('✅ Login de prueba exitoso');
-      } else {
-        setError('❌ Login de prueba falló');
-      }
-    } catch (error) {
-      setError('❌ Error en login de prueba');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="login-container">
       <div className="login-card">
-        <h2>Iniciar Sesión</h2>
-        <p className="login-subtitle">Sistema de Gestión de Condominio</p>
-        
+        <div className="login-header">
+          <div className="login-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" />
+            </svg>
+          </div>
+          <h1>INICIAR SESIÓN</h1>
+          <p>Sistema de Gestión de Condominios</p>
+        </div>
+
         {error && (
           <div className="error-message">
+            <svg className="error-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21C3,22.11 3.89,23 5,23H19C20.11,23 21,22.11 21,21V9M19,9H14V4H19V9Z" />
+            </svg>
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label htmlFor="username">Usuario:</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-              disabled={loading}
-              placeholder="Ingrese su nombre de usuario"
-            />
+            <label htmlFor="username">Usuario</label>
+            <div className="input-group">
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+                disabled={loading}
+                placeholder="Ingrese su nombre de usuario"
+              />
+            </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Contraseña:</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              disabled={loading}
-              placeholder="Ingrese su contraseña"
-            />
+            <label htmlFor="password">Contraseña</label>
+            <div className="input-group">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                disabled={loading}
+                placeholder="Ingrese su contraseña"
+              />
+            </div>
           </div>
 
           <button 
@@ -130,62 +122,20 @@ const IniciarSesion = () => {
             className="login-button"
             disabled={loading}
           >
-            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            {loading ? (
+              <span className="loading-state">
+                <svg className="spinner" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12,1A11,11 0 0,0 1,12A11,11 0 0,0 12,23A11,11 0 0,0 23,12A11,11 0 0,0 12,1M12,21A9,9 0 0,1 3,12A9,9 0 0,1 12,3A9,9 0 0,1 21,12A9,9 0 0,1 12,21Z"/>
+                </svg>
+                Iniciando sesión...
+              </span>
+            ) : (
+              'Iniciar Sesión'
+            )}
           </button>
         </form>
 
-        <div className="login-info">
-          <p><strong>Usuarios de prueba:</strong></p>
-          <ul>
-            <li><strong>Administrador:</strong> jael / password123</li>
-            <li><strong>Residente:</strong> residente1 / password123</li>
-            <li><strong>Residente:</strong> residente2 / password123</li>
-            <li><strong>Residente:</strong> residente3 / password123</li>
-          </ul>
-          
-          <div className="test-buttons">
-            <button 
-              type="button"
-              className="test-button"
-              onClick={() => {
-                setFormData({ username: 'jael', password: 'password123' });
-              }}
-            >
-              Cargar Admin
-            </button>
-            <button 
-              type="button"
-              className="test-button"
-              onClick={() => {
-                setFormData({ username: 'residente1', password: 'password123' });
-              }}
-            >
-              Cargar Residente
-            </button>
-          </div>
-          
-          <div className="connection-test">
-            <button 
-              type="button"
-              className="test-button connection-button"
-              onClick={handleTestConnection}
-            >
-              Probar Conexión
-            </button>
-            <button 
-              type="button"
-              className="test-button connection-button"
-              onClick={handleTestLogin}
-            >
-              Probar Login
-            </button>
-            {connectionStatus && (
-              <div className="connection-status">
-                {connectionStatus}
-              </div>
-            )}
-          </div>
-        </div>
+
       </div>
     </div>
   );

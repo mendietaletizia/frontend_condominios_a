@@ -122,8 +122,9 @@ const ListaGastos = () => {
   }
 
   return (
-    <div className="gastos-container">
-      <div className="gastos-header">
+    <div className="page gastos-container">
+      <div className="section">
+        <div className="gastos-header">
         <h2>Gestión de Gastos del Condominio</h2>
         <button 
           className="btn-primary"
@@ -286,6 +287,7 @@ const ListaGastos = () => {
             ))}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

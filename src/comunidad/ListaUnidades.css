@@ -1,7 +1,5 @@
 .unidades-container {
-  padding: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 24px 20px;
 }
 
 .unidades-header {
@@ -101,9 +99,9 @@
 /* Estadísticas */
 .unidades-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
@@ -236,7 +234,7 @@
 /* Grid de unidades */
 .unidades-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
 }
 
