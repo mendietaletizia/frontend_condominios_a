@@ -1,4 +1,3 @@
-// API de Comunidad
 import api from './config';
 
 export const comunidadAPI = {
@@ -65,8 +64,9 @@ export const comunidadAPI = {
   // Obtener todos los eventos
   async getEventos() {
     try {
-      const response = await api.get('/comunidad/evento/');
-      return response.data;
+      const response = await api.get('/comunidad/eventos/');
+      const data = response.data;
+      return Array.isArray(data) ? data : (data?.results || []);
     } catch (error) {
       throw error;
     }
@@ -75,7 +75,7 @@ export const comunidadAPI = {
   // Crear un nuevo evento
   async createEvento(eventoData) {
     try {
-      const response = await api.post('/comunidad/evento/', eventoData);
+      const response = await api.post('/comunidad/eventos/', eventoData);
       return response.data;
     } catch (error) {
       throw error;
@@ -85,7 +85,7 @@ export const comunidadAPI = {
   // Actualizar un evento
   async updateEvento(id, eventoData) {
     try {
-      const response = await api.put(`/comunidad/evento/${id}/`, eventoData);
+      const response = await api.put(`/comunidad/eventos/${id}/`, eventoData);
       return response.data;
     } catch (error) {
       throw error;
@@ -95,7 +95,7 @@ export const comunidadAPI = {
   // Eliminar un evento
   async deleteEvento(id) {
     try {
-      const response = await api.delete(`/comunidad/evento/${id}/`);
+      const response = await api.delete(`/comunidad/eventos/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -105,7 +105,7 @@ export const comunidadAPI = {
   // Obtener todas las notificaciones
   async getNotificaciones() {
     try {
-      const response = await api.get('/comunidad/notificacion/');
+      const response = await api.get('/comunidad/notificaciones/');
       return response.data;
     } catch (error) {
       throw error;
@@ -115,7 +115,7 @@ export const comunidadAPI = {
   // Crear una nueva notificación
   async createNotificacion(notificacionData) {
     try {
-      const response = await api.post('/comunidad/notificacion/', notificacionData);
+      const response = await api.post('/comunidad/notificaciones/', notificacionData);
       return response.data;
     } catch (error) {
       throw error;
@@ -125,7 +125,7 @@ export const comunidadAPI = {
   // Actualizar una notificación
   async updateNotificacion(id, notificacionData) {
     try {
-      const response = await api.put(`/comunidad/notificacion/${id}/`, notificacionData);
+      const response = await api.put(`/comunidad/notificaciones/${id}/`, notificacionData);
       return response.data;
     } catch (error) {
       throw error;
@@ -135,8 +135,18 @@ export const comunidadAPI = {
   // Eliminar una notificación
   async deleteNotificacion(id) {
     try {
-      const response = await api.delete(`/comunidad/notificacion/${id}/`);
+      const response = await api.delete(`/comunidad/notificaciones/${id}/`);
       return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Enviar comunicado (broadcast a todos los residentes)
+  async broadcastComunicado(data) {
+    try {
+      const res = await api.post('/comunidad/notificaciones/broadcast/', data);
+      return res.data;
     } catch (error) {
       throw error;
     }

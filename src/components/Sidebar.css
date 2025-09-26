@@ -193,6 +193,19 @@
 }
 
 /* Responsive */
+@media (max-width: 1200px) {
+  .sidebar {
+    width: 220px;
+  }
+  .nav-label { font-size: 13px; }
+}
+
+@media (max-width: 992px) {
+  .sidebar { width: 200px; }
+  .nav-link { padding: 10px 16px; font-size: 13px; }
+  .submenu-link { padding: 8px 16px 8px 36px; }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     width: 280px;

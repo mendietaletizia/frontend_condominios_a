@@ -5,7 +5,7 @@ export const mantenimientoAPI = {
   // Obtener todas las áreas comunes
   async getAreasComunes() {
     try {
-      const response = await api.get('/mantenimiento/area-comun/');
+      const response = await api.get('/mantenimiento/areas-comunes/');
       return response.data;
     } catch (error) {
       throw error;
@@ -15,7 +15,7 @@ export const mantenimientoAPI = {
   // Obtener un área común por ID
   async getAreaComun(id) {
     try {
-      const response = await api.get(`/mantenimiento/area-comun/${id}/`);
+      const response = await api.get(`/mantenimiento/areas-comunes/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -25,7 +25,7 @@ export const mantenimientoAPI = {
   // Crear un nueva área común
   async createAreaComun(areaData) {
     try {
-      const response = await api.post('/mantenimiento/area-comun/', areaData);
+      const response = await api.post('/mantenimiento/areas-comunes/', areaData);
       return response.data;
     } catch (error) {
       throw error;
@@ -35,7 +35,7 @@ export const mantenimientoAPI = {
   // Actualizar un área común
   async updateAreaComun(id, areaData) {
     try {
-      const response = await api.put(`/mantenimiento/area-comun/${id}/`, areaData);
+      const response = await api.put(`/mantenimiento/areas-comunes/${id}/`, areaData);
       return response.data;
     } catch (error) {
       throw error;
@@ -45,7 +45,7 @@ export const mantenimientoAPI = {
   // Eliminar un área común
   async deleteAreaComun(id) {
     try {
-      const response = await api.delete(`/mantenimiento/area-comun/${id}/`);
+      const response = await api.delete(`/mantenimiento/areas-comunes/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -55,7 +55,7 @@ export const mantenimientoAPI = {
   // Obtener todas las reservas
   async getReservas() {
     try {
-      const response = await api.get('/mantenimiento/reserva/');
+      const response = await api.get('/mantenimiento/reservas/');
       return response.data;
     } catch (error) {
       throw error;
@@ -65,7 +65,7 @@ export const mantenimientoAPI = {
   // Obtener una reserva por ID
   async getReserva(id) {
     try {
-      const response = await api.get(`/mantenimiento/reserva/${id}/`);
+      const response = await api.get(`/mantenimiento/reservas/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -75,7 +75,7 @@ export const mantenimientoAPI = {
   // Crear una nueva reserva
   async createReserva(reservaData) {
     try {
-      const response = await api.post('/mantenimiento/reserva/', reservaData);
+      const response = await api.post('/mantenimiento/reservas/', reservaData);
       return response.data;
     } catch (error) {
       throw error;
@@ -85,7 +85,7 @@ export const mantenimientoAPI = {
   // Actualizar una reserva
   async updateReserva(id, reservaData) {
     try {
-      const response = await api.put(`/mantenimiento/reserva/${id}/`, reservaData);
+      const response = await api.put(`/mantenimiento/reservas/${id}/`, reservaData);
       return response.data;
     } catch (error) {
       throw error;
@@ -95,7 +95,7 @@ export const mantenimientoAPI = {
   // Eliminar una reserva
   async deleteReserva(id) {
     try {
-      const response = await api.delete(`/mantenimiento/reserva/${id}/`);
+      const response = await api.delete(`/mantenimiento/reservas/${id}/`);
       return response.data;
     } catch (error) {
       throw error;

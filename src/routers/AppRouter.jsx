@@ -4,12 +4,17 @@ import { useAuth } from '../contexts/AuthContext';
 import IniciarSesion from '../autenticacion/IniciarSesion';
 import Dashboard from '../components/Dashboard';
 import NotImplemented from '../components/NotImplemented';
+import ListaAreasComunes from '../mantenimiento/ListaAreasComunes';
+import ListaEventos from '../comunidad/ListaEventos';
+import ListaComunicados from '../comunidad/ListaComunicados';
 
 // Componentes implementados
 import ListaUsuarios from '../usuarios/ListaUsuarios';
 import ListaResidentes from '../usuarios/ListaResidentes';
 import ListaRoles from '../usuarios/ListaRoles';
+import ListaEmpleados from '../usuarios/ListaEmpleados';
 import ListaUnidades from '../comunidad/ListaUnidades';
+import ListaMascotas from '../comunidad/ListaMascotas';
 import ListaGastos from '../economia/ListaGastos';
 import ListaMultas from '../economia/ListaMultas';
 import ListaPagos from '../finanzas/ListaPagos';
@@ -120,11 +125,8 @@ const AppRouter = () => {
           <Route 
             path="empleados" 
             element={
-              <ProtectedRoute requiredRoles={['administrador']}>
-                <NotImplemented 
-                  title="CU13 - Gestión de Empleados"
-                  description="Sistema de gestión de empleados del condominio con información personal y laboral."
-                />
+              <ProtectedRoute requiredRoles={['administrador', 'empleado', 'seguridad']}>
+                <ListaEmpleados />
               </ProtectedRoute>
             } 
           />
@@ -139,24 +141,26 @@ const AppRouter = () => {
             } 
           />
           <Route 
+            path="mascotas" 
+            element={
+              <ProtectedRoute requiredRoles={['administrador', 'residente']}>
+                <ListaMascotas />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="eventos" 
             element={
               <ProtectedRoute requiredRoles={['administrador']}>
-                <NotImplemented 
-                  title="CU11 - Gestión de Eventos"
-                  description="Sistema de gestión de eventos comunitarios y reservas de áreas comunes."
-                />
+                <ListaEventos />
               </ProtectedRoute>
             } 
           />
           <Route 
             path="reclamos" 
             element={
-              <ProtectedRoute requiredRoles={['administrador', 'residente']}>
-                <NotImplemented 
-                  title="CU12 - Gestión de Reclamos"
-                  description="Sistema de gestión de reclamos y sugerencias de los residentes."
-                />
+              <ProtectedRoute requiredRoles={['administrador']}>
+                <ListaComunicados />
               </ProtectedRoute>
             } 
           />
@@ -164,10 +168,7 @@ const AppRouter = () => {
             path="areas-comunes" 
             element={
               <ProtectedRoute requiredRoles={['administrador']}>
-                <NotImplemented 
-                  title="CU17 - Gestión de Áreas Comunes"
-                  description="Sistema de gestión de áreas comunes del condominio y sus reservas."
-                />
+                <ListaAreasComunes />
               </ProtectedRoute>
             } 
           />

@@ -6,7 +6,8 @@ export const usuariosAPI = {
   async getUsuarios() {
     try {
       const response = await api.get('/usuarios/usuario/');
-      return response.data;
+      // Handle Django REST Framework response format
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
       throw error;
     }
@@ -52,11 +53,12 @@ export const usuariosAPI = {
     }
   },
 
-  // Obtener todos los residentes
+  // Obtener todos los residentes (usando la nueva API mejorada)
   async getResidentes() {
     try {
-      const response = await api.get('/usuarios/persona/');
-      return response.data;
+      const response = await api.get('/usuarios/residentes/');
+      // Handle Django REST Framework response format
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
       throw error;
     }
@@ -74,7 +76,7 @@ export const usuariosAPI = {
         throw new Error('El campo CI no puede exceder los 20 caracteres.');
       }
 
-      const response = await api.post('/usuarios/persona/', residenteData);
+      const response = await api.post('/usuarios/residentes/', residenteData);
       return response.data;
     } catch (error) {
       throw error;
@@ -84,7 +86,7 @@ export const usuariosAPI = {
   // Actualizar un residente
   async updateResidente(id, residenteData) {
     try {
-      const response = await api.put(`/usuarios/persona/${id}/`, residenteData);
+      const response = await api.put(`/usuarios/residentes/${id}/`, residenteData);
       return response.data;
     } catch (error) {
       throw error;
@@ -94,7 +96,7 @@ export const usuariosAPI = {
   // Eliminar un residente
   async deleteResidente(id) {
     try {
-      const response = await api.delete(`/usuarios/persona/${id}/`);
+      const response = await api.delete(`/usuarios/residentes/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -105,7 +107,8 @@ export const usuariosAPI = {
   async getRoles() {
     try {
       const response = await api.get('/usuarios/roles/');
-      return response.data;
+      // Handle Django REST Framework response format
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
       throw error;
     }
@@ -145,7 +148,8 @@ export const usuariosAPI = {
   async getPermisos() {
     try {
       const response = await api.get('/usuarios/permiso/');
-      return response.data;
+      // Handle Django REST Framework response format
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
       throw error;
     }
@@ -155,7 +159,8 @@ export const usuariosAPI = {
   async getRolPermisos() {
     try {
       const response = await api.get('/usuarios/rol-permiso/');
-      return response.data;
+      // Handle Django REST Framework response format
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
     } catch (error) {
       throw error;
     }

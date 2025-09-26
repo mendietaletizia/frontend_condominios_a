@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message } from 'antd';
-import { UserOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Tooltip, Badge, Divider } from 'antd';
+import { UserOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, HomeOutlined, UserAddOutlined, SearchOutlined, FilterOutlined, EyeOutlined } from '@ant-design/icons';
 import { usuariosAPI } from '../api/usuarios';
+import api from '../api/config';
 import './ListaUsuarios.css';
 
 const { Option } = Select;
@@ -15,10 +16,19 @@ const ListaUsuarios = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [form] = Form.useForm();
+  const [searchText, setSearchText] = useState('');
+  const [filterRole, setFilterRole] = useState('');
+  const [residentes, setResidentes] = useState([]);
+  const [showCreateResidentModal, setShowCreateResidentModal] = useState(false);
+  const [selectedUserForResident, setSelectedUserForResident] = useState(null);
+  const [residentForm] = Form.useForm();
+  const [isDetailsVisible, setIsDetailsVisible] = useState(false);
+  const [selectedUserDetails, setSelectedUserDetails] = useState(null);
 
   useEffect(() => {
     cargarUsuarios();
     cargarRoles();
+    cargarResidentes();
   }, []);
 
   const cargarUsuarios = async () => {
@@ -47,6 +57,16 @@ const ListaUsuarios = () => {
       setRoles(list);
     } catch (error) {
       console.error('Error cargando roles:', error);
+    }
+  };
+
+  const cargarResidentes = async () => {
+    try {
+      const response = await api.get('/usuarios/residentes/');
+      const data = Array.isArray(response.data) ? response.data : response.data.results || [];
+      setResidentes(data);
+    } catch (error) {
+      console.error('Error cargando residentes:', error);
     }
   };
 
@@ -80,7 +100,21 @@ const ListaUsuarios = () => {
         await usuariosAPI.updateUsuario(editingUser.id, values);
         message.success('Usuario actualizado exitosamente');
       } else {
-        await usuariosAPI.createUsuario(values);
+        const createdUser = await usuariosAPI.createUsuario(values);
+        try {
+          const personaNombre = (values.first_name || values.last_name)
+            ? `${values.first_name || ''} ${values.last_name || ''}`.trim()
+            : values.username;
+          await api.post('/usuarios/persona/', {
+            ci: null,
+            nombre: personaNombre,
+            email: values.email || null,
+            telefono: null
+          });
+        } catch (personaErr) {
+          console.error('Error creando persona para el usuario:', personaErr);
+          // No bloqueamos la creación del usuario si falla la persona
+        }
         message.success('Usuario creado exitosamente');
       }
       handleCancel();
@@ -104,6 +138,7 @@ const ListaUsuarios = () => {
           await usuariosAPI.deleteUsuario(id);
           message.success('Usuario eliminado exitosamente');
           cargarUsuarios();
+          cargarResidentes();
         } catch (error) {
           console.error('Error al eliminar usuario:', error);
           message.error('Error al eliminar usuario');
@@ -112,38 +147,125 @@ const ListaUsuarios = () => {
     });
   };
 
+  const openCreateResidentModal = (usuario) => {
+    setSelectedUserForResident(usuario);
+    residentForm.setFieldsValue({
+      ci: '',
+      nombre: usuario.first_name && usuario.last_name ? `${usuario.first_name} ${usuario.last_name}` : usuario.username,
+      email: usuario.email,
+      telefono: '',
+      tipo: 'residente',
+      unidad: '',
+      usuario_asociado: ''
+    });
+    setShowCreateResidentModal(true);
+  };
+
+  const handleCreateResident = async (values) => {
+    try {
+      // 1. Crear persona
+      const personaRes = await api.post('/usuarios/persona/', {
+        ci: values.ci || null,
+        nombre: values.nombre,
+        email: values.email || null,
+        telefono: values.telefono || null
+      });
+      const personaId = personaRes.data.id;
+
+      // 2. Crear residente (con usuario asociado)
+      const residenteData = {
+        persona: personaId,
+        usuario: selectedUserForResident.id,
+        usuario_asociado: values.usuario_asociado || null
+      };
+      
+      await api.post('/usuarios/residentes/', residenteData);
+
+      message.success('Residente creado exitosamente');
+      setShowCreateResidentModal(false);
+      setSelectedUserForResident(null);
+      residentForm.resetFields();
+      cargarResidentes();
+    } catch (error) {
+      console.error('Error al crear residente:', error);
+      message.error('Error al crear residente: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const handleCancelResidentModal = () => {
+    setShowCreateResidentModal(false);
+    setSelectedUserForResident(null);
+    residentForm.resetFields();
+  };
+
+  // Filtrar usuarios
+  const filteredUsuarios = usuarios.filter(usuario => {
+    const matchesSearch = !searchText || 
+      usuario.username.toLowerCase().includes(searchText.toLowerCase()) ||
+      usuario.email.toLowerCase().includes(searchText.toLowerCase()) ||
+      `${usuario.first_name || ''} ${usuario.last_name || ''}`.toLowerCase().includes(searchText.toLowerCase());
+    
+    const matchesRole = !filterRole || 
+      (usuario.rol?.nombre || usuario.rol || '').toLowerCase() === filterRole.toLowerCase();
+    
+    return matchesSearch && matchesRole;
+  });
+
+  // Verificar si un usuario ya tiene residente asociado
+  const hasResident = (usuarioId) => {
+    return residentes.some(residente => residente.usuario === usuarioId);
+  };
+
+  const openUserDetails = (usuario) => {
+    setSelectedUserDetails(usuario);
+    setIsDetailsVisible(true);
+  };
+
+  
+
   const columns = [
     {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
-      width: 80,
+      width: 60,
+      responsive: ['xl'],
+      align: 'center',
     },
     {
       title: 'Usuario',
       dataIndex: 'username',
       key: 'username',
-      render: (username) => <strong>{username}</strong>,
+      width: 120,
+      render: (username) => <strong style={{ fontSize: '13px' }}>{username}</strong>,
     },
     {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
+      width: 160,
+      responsive: ['lg'],
+      render: (email) => <span style={{ fontSize: '12px' }}>{email}</span>,
     },
     {
       title: 'Nombre Completo',
       key: 'fullname',
+      width: 150,
+      responsive: ['md'],
       render: (_, record) => {
         const fullName = `${record.first_name || ''} ${record.last_name || ''}`.trim();
-        return fullName || '-';
+        return <span style={{ fontSize: '12px' }}>{fullName || '-'}</span>;
       },
     },
     {
       title: 'Estado',
       dataIndex: 'is_active',
       key: 'estado',
+      width: 90,
+      responsive: ['sm'],
+      align: 'center',
       render: (isActive) => (
-        <Tag color={isActive ? 'success' : 'default'}>
+        <Tag color={isActive ? 'success' : 'default'} size="small">
           {isActive ? 'ACTIVO' : 'INACTIVO'}
         </Tag>
       ),
@@ -151,33 +273,64 @@ const ListaUsuarios = () => {
     {
       title: 'Rol',
       key: 'rol',
+      width: 100,
+      responsive: ['sm'],
+      align: 'center',
       render: (_, record) => {
         const rolName = record.rol?.nombre || record.rol || 'Usuario';
         const color = rolName.toLowerCase() === 'administrador' ? 'blue' : 
                      rolName.toLowerCase() === 'residente' ? 'green' : 
                      rolName.toLowerCase() === 'seguridad' ? 'orange' : 'default';
-        return <Tag color={color}>{rolName}</Tag>;
+        return <Tag color={color} size="small">{rolName}</Tag>;
       },
     },
     {
       title: 'Acciones',
       key: 'acciones',
+      width: 180,
+      align: 'center',
       render: (_, record) => (
-        <Space>
+        <Space size="small" wrap>
+          <Tooltip title="Ver detalles">
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              onClick={() => openUserDetails(record)}
+              size="small"
+              style={{ padding: '4px 6px', fontSize: '11px' }}
+            >
+              Ver
+            </Button>
+          </Tooltip>
           <Button
             type="link"
             icon={<EditOutlined />}
             onClick={() => showModal(record)}
             size="small"
+            style={{ padding: '4px 6px', fontSize: '11px' }}
           >
             Editar
           </Button>
+          {!hasResident(record.id) && (record.rol?.nombre || record.rol || '').toLowerCase() === 'residente' && (
+            <Tooltip title="Crear residente para este usuario">
+              <Button
+                type="link"
+                icon={<HomeOutlined />}
+                onClick={() => openCreateResidentModal(record)}
+                size="small"
+                style={{ color: '#52c41a', padding: '4px 6px', fontSize: '11px' }}
+              >
+                Residente
+              </Button>
+            </Tooltip>
+          )}
           <Button
             type="link"
             danger
             icon={<DeleteOutlined />}
             onClick={() => handleDelete(record.id)}
             size="small"
+            style={{ padding: '4px 6px', fontSize: '11px' }}
           >
             Eliminar
           </Button>
@@ -216,10 +369,45 @@ const ListaUsuarios = () => {
         </Button>
       </div>
 
+      {/* Filtros y búsqueda */}
+      <Card className="usuarios-filters" style={{ marginBottom: 20 }}>
+        <Space wrap>
+          <Input
+            placeholder="Buscar por usuario, email o nombre..."
+            prefix={<SearchOutlined />}
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            style={{ width: 300 }}
+          />
+          <Select
+            placeholder="Filtrar por rol"
+            value={filterRole}
+            onChange={setFilterRole}
+            style={{ width: 150 }}
+            allowClear
+          >
+            {roles.map(rol => (
+              <Option key={rol.id} value={rol.nombre}>{rol.nombre}</Option>
+            ))}
+          </Select>
+          <Button 
+            icon={<FilterOutlined />} 
+            onClick={() => {
+              setSearchText('');
+              setFilterRole('');
+            }}
+          >
+            Limpiar Filtros
+          </Button>
+        </Space>
+      </Card>
+
+
       {/* Tabla de Usuarios */}
       <Card
-        title="Lista de Usuarios del Sistema"
+        title={`Usuarios (${filteredUsuarios.length})`}
         className="usuarios-table"
+        size="small"
         extra={
           <Button type="link" size="small" onClick={cargarUsuarios}>
             Actualizar
@@ -228,15 +416,18 @@ const ListaUsuarios = () => {
       >
         <Table
           columns={columns}
-          dataSource={usuarios}
+          dataSource={filteredUsuarios}
           rowKey="id"
+          size="small"
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) => `Mostrando ${range[0]}-${range[1]} de ${total} usuarios`,
+            showTotal: (total, range) => `${range[0]}-${range[1]} de ${total}`,
+            size: 'small',
+            responsive: true
           }}
-          scroll={false}
+          responsive={true}
         />
       </Card>
 
@@ -330,6 +521,120 @@ const ListaUsuarios = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Modal para crear residente desde usuario */}
+      <Modal
+        title={`Crear Residente para ${selectedUserForResident?.username}`}
+        open={showCreateResidentModal}
+        onCancel={handleCancelResidentModal}
+        footer={null}
+        width={600}
+      >
+        <Form
+          form={residentForm}
+          layout="vertical"
+          onFinish={handleCreateResident}
+        >
+          <Form.Item
+            name="ci"
+            label="CI"
+          >
+            <Input placeholder="Ingrese el CI (opcional)" maxLength="20" />
+          </Form.Item>
+
+          <Form.Item
+            name="nombre"
+            label="Nombre Completo"
+            rules={[{ required: true, message: 'Por favor ingrese el nombre completo' }]}
+          >
+            <Input placeholder="Ingrese el nombre completo" />
+          </Form.Item>
+
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { type: 'email', message: 'Email inválido' }
+            ]}
+          >
+            <Input placeholder="Ingrese el email" />
+          </Form.Item>
+
+          <Form.Item
+            name="telefono"
+            label="Teléfono"
+          >
+            <Input placeholder="Ingrese el teléfono" />
+          </Form.Item>
+
+          <Form.Item
+            name="tipo"
+            label="Tipo"
+            rules={[{ required: true, message: 'Por favor seleccione el tipo' }]}
+          >
+            <Select>
+              <Option value="residente">Residente</Option>
+              <Option value="inquilino">Inquilino</Option>
+            </Select>
+          </Form.Item>
+
+          <Divider>Información del Usuario</Divider>
+          <div style={{ padding: '12px', background: '#f5f5f5', borderRadius: '6px', marginBottom: '16px' }}>
+            <div><strong>Usuario:</strong> {selectedUserForResident?.username}</div>
+            <div><strong>Email:</strong> {selectedUserForResident?.email}</div>
+            <div><strong>Rol:</strong> {selectedUserForResident?.rol?.nombre || selectedUserForResident?.rol}</div>
+          </div>
+
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Crear Residente
+              </Button>
+              <Button onClick={handleCancelResidentModal}>
+                Cancelar
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal de detalles de usuario */}
+      <Modal
+        title={
+          <Space>
+            <UserOutlined />
+            Detalles de Usuario {selectedUserDetails?.username}
+          </Space>
+        }
+        open={isDetailsVisible}
+        onCancel={() => setIsDetailsVisible(false)}
+        footer={null}
+        width={600}
+      >
+        {selectedUserDetails && (
+          <div style={{ lineHeight: 1.8 }}>
+            <div>
+              <strong>Usuario:</strong> {selectedUserDetails.username}
+            </div>
+            <div>
+              <strong>Email:</strong> {selectedUserDetails.email}
+            </div>
+            <div>
+              <strong>Nombre:</strong> {(selectedUserDetails.first_name || '') + ' ' + (selectedUserDetails.last_name || '')}
+            </div>
+            <div>
+              <strong>Rol:</strong> {selectedUserDetails.rol?.nombre || selectedUserDetails.rol || 'Usuario'}
+            </div>
+            <div>
+              <strong>Estado:</strong>{' '}
+              <Tag color={selectedUserDetails.is_active ? 'success' : 'default'}>
+                {selectedUserDetails.is_active ? 'ACTIVO' : 'INACTIVO'}
+              </Tag>
+            </div>
+          </div>
+        )}
+      </Modal>
+
     </div>
   );
 };

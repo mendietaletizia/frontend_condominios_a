@@ -1,7 +1,10 @@
 .roles-container {
-  padding: 20px;
+  padding: 24px 20px;
   max-width: 1400px;
   margin: 0 auto;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  width: 100%;
   overflow-x: hidden;
 }
 
@@ -248,6 +251,9 @@
 /* Tabla de roles */
 .roles-table-container {
   overflow-x: hidden;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .roles-table {
@@ -259,16 +265,16 @@
   background: #f8f9fa;
   color: #495057;
   font-weight: 600;
-  padding: 16px 12px;
+  padding: 14px 12px;
   text-align: left;
   border-bottom: 2px solid #e1e5e9;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .roles-table td {
-  padding: 12px;
+  padding: 14px 12px;
   border-bottom: 1px solid #e1e5e9;
-  font-size: 14px;
+  font-size: 13px;
   color: #333;
   vertical-align: top;
 }
@@ -363,81 +369,137 @@
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .roles-sections {
     grid-template-columns: 1fr;
     gap: 20px;
   }
 }
 
+@media (max-width: 1200px) {
+  .roles-table th,
+  .roles-table td {
+    padding: 12px 8px;
+    font-size: 12px;
+  }
+  
+  .roles-table th {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 992px) {
+  .roles-container {
+    padding: 16px;
+  }
+
+  .roles-header h2 {
+    font-size: 22px;
+  }
+
+  .roles-table th,
+  .roles-table td {
+    padding: 10px 6px;
+    font-size: 11px;
+  }
+  
+  .roles-table th {
+    font-size: 11px;
+  }
+}
+
 @media (max-width: 768px) {
   .roles-container {
-    padding: 15px;
+    padding: 12px;
   }
   
   .roles-header {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
     align-items: stretch;
+    padding: 12px;
   }
   
   .roles-header h2 {
-    font-size: 24px;
+    font-size: 18px;
     text-align: center;
   }
   
   .roles-stats {
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 12px;
   }
   
   .form-content {
-    padding: 20px;
+    padding: 16px;
     width: 95%;
   }
   
   .roles-section,
   .permisos-section {
-    padding: 20px;
+    padding: 12px;
   }
   
   .roles-table th,
   .roles-table td {
-    padding: 8px 6px;
-    font-size: 12px;
+    padding: 8px 4px;
+    font-size: 10px;
+  }
+  
+  .roles-table th {
+    font-size: 10px;
   }
   
   .form-actions {
     flex-direction: column;
   }
+
+  /* Permisos grid responsive */
+  .permisos-grid {
+    max-height: 300px;
+  }
+
+  .permiso-card {
+    padding: 8px;
+  }
+
+  .permiso-descripcion {
+    font-size: 11px;
+  }
+
+  .permiso-badge {
+    font-size: 9px;
+    padding: 1px 4px;
+  }
 }
 
 @media (max-width: 480px) {
   .roles-container {
-    padding: 10px;
+    padding: 12px;
   }
   
   .roles-header h2 {
-    font-size: 20px;
+    font-size: 18px;
   }
   
   .form-content {
     padding: 15px;
+    width: 98%;
   }
   
   .form-content h3 {
-    font-size: 18px;
+    font-size: 16px;
   }
   
   .roles-section,
   .permisos-section {
-    padding: 15px;
+    padding: 12px;
   }
   
   .roles-table th,
   .roles-table td {
-    padding: 6px 4px;
-    font-size: 11px;
+    padding: 4px 2px;
+    font-size: 10px;
   }
   
   .action-buttons {
@@ -446,16 +508,34 @@
   }
   
   .stat-card {
-    padding: 15px;
+    padding: 12px;
   }
   
   .stat-icon {
-    font-size: 24px;
-    width: 40px;
-    height: 40px;
+    font-size: 20px;
+    width: 35px;
+    height: 35px;
   }
   
   .stat-value {
-    font-size: 18px;
+    font-size: 16px;
+  }
+
+  /* Permisos más compactos */
+  .permisos-grid {
+    max-height: 250px;
+  }
+
+  .permiso-card {
+    padding: 6px;
+  }
+
+  .permiso-descripcion {
+    font-size: 11px;
+  }
+
+  .permiso-badge {
+    font-size: 10px;
+    padding: 2px 6px;
   }
 }

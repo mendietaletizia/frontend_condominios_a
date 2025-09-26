@@ -30,15 +30,16 @@ const Sidebar = ({ isOpen, onToggle }) => {
           { id: 'cu3', label: 'CU3 - Gestión de Usuarios', path: '/usuarios', implemented: true, roles: ['administrador'] },
           { id: 'cu4', label: 'CU4 - Gestión de Roles', path: '/roles', implemented: true, roles: ['administrador'] },
           { id: 'cu5', label: 'CU5 - Gestión de Residentes', path: '/residentes', implemented: true, roles: ['administrador'] },
-          { id: 'cu13', label: 'CU13 - Gestión de Empleados', path: '/empleados', implemented: true, roles: ['administrador'] }
+          { id: 'cu13', label: 'CU13 - Gestión de Empleados', path: '/empleados', implemented: true, roles: ['administrador', 'empleado', 'seguridad'] }
         ]
       },
       {
         id: 'comunidad',
         label: 'Unidades y Comunidad',
-        icon: '🏢',
+        icon: '🏠',
         cases: [
           { id: 'cu6', label: 'CU6 - Gestión de Unidades', path: '/unidades', implemented: true, roles: ['administrador', 'residente'] },
+          { id: 'cu5-mascotas', label: 'CU5 - Gestión de Mascotas', path: '/mascotas', implemented: true, roles: ['administrador', 'residente'] },
           { id: 'cu11', label: 'CU11 - Gestión de Eventos', path: '/eventos', implemented: true, roles: ['administrador', 'residente'] },
           { id: 'cu12', label: 'CU12 - Gestión de Reclamos', path: '/reclamos', implemented: true, roles: ['administrador', 'residente'] },
           { id: 'cu17', label: 'CU17 - Gestión de Áreas Comunes', path: '/areas-comunes', implemented: true, roles: ['administrador', 'residente'] }
