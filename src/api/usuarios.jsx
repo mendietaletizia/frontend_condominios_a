@@ -164,5 +164,16 @@ export const usuariosAPI = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Obtener usuarios con rol de residente (para selección de propietarios)
+  async getUsuariosResidentes() {
+    try {
+      const response = await api.get('/usuarios/usuarios-residentes/');
+      // Handle Django REST Framework response format
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
+    } catch (error) {
+      throw error;
+    }
   }
 };

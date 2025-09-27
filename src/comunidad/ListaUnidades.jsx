@@ -3,6 +3,7 @@ import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, T
 import { HomeOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, SearchOutlined, FilterOutlined, UserOutlined, TeamOutlined, CarOutlined, EyeOutlined, InfoCircleOutlined, HeartOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/config';
+import { usuariosAPI } from '../api/usuarios';
 import './ListaUnidades.css';
 
 const { Option } = Select;
@@ -15,13 +16,17 @@ const ListaUnidades = () => {
   const [residentesUnidades, setResidentesUnidades] = useState([]);
   const [mascotas, setMascotas] = useState([]);
   const [vehiculos, setVehiculos] = useState([]);
+  const [residentes, setResidentes] = useState([]);
+  const [usuariosResidentes, setUsuariosResidentes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
+  const [isPropietarioModalVisible, setIsPropietarioModalVisible] = useState(false);
   const [selectedUnidad, setSelectedUnidad] = useState(null);
   const [editingUnidad, setEditingUnidad] = useState(null);
   const [form] = Form.useForm();
+  const [propietarioForm] = Form.useForm();
   const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
@@ -33,26 +38,34 @@ const ListaUnidades = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [unidadesRes, residentesUnidadesRes, mascotasRes] = await Promise.all([
+      const [unidadesRes, residentesUnidadesRes, mascotasRes, residentesRes, usuariosResidentesRes] = await Promise.all([
         api.get('/comunidad/unidades/'),
         api.get('/comunidad/residentes-unidad/'),
-        api.get('/comunidad/mascotas/')
+        api.get('/comunidad/mascotas/'),
+        api.get('/usuarios/residentes/'),
+        usuariosAPI.getUsuariosResidentes()
       ]);
       
       // Manejar formato de respuesta de Django REST Framework
       const unidadesData = Array.isArray(unidadesRes.data) ? unidadesRes.data : unidadesRes.data.results || [];
       const residentesUnidadesData = Array.isArray(residentesUnidadesRes.data) ? residentesUnidadesRes.data : residentesUnidadesRes.data.results || [];
       const mascotasData = Array.isArray(mascotasRes.data) ? mascotasRes.data : mascotasRes.data.results || [];
+      const residentesData = Array.isArray(residentesRes.data) ? residentesRes.data : residentesRes.data.results || [];
+      const usuariosResidentesData = Array.isArray(usuariosResidentesRes) ? usuariosResidentesRes : usuariosResidentesRes.results || [];
       
       console.log('📊 Datos cargados:', {
         unidades: unidadesData,
         residentes: residentesUnidadesData,
-        mascotas: mascotasData
+        mascotas: mascotasData,
+        residentesList: residentesData,
+        usuariosResidentes: usuariosResidentesData
       });
       
       setUnidades(unidadesData);
       setResidentesUnidades(residentesUnidadesData);
       setMascotas(mascotasData);
+      setResidentes(residentesData);
+      setUsuariosResidentes(usuariosResidentesData);
       setVehiculos([]); // Por ahora vacío hasta que se implemente el endpoint
       setError(null);
     } catch (error) {
@@ -174,6 +187,110 @@ const ListaUnidades = () => {
     setIsDetailsModalVisible(true);
   };
 
+  const showPropietarioModal = (unidad) => {
+    setSelectedUnidad(unidad);
+    const propietario = unidad.propietario_info;
+    if (propietario) {
+      // Buscar el usuario residente correspondiente al propietario
+      const usuarioResidente = usuariosResidentes.find(ur => 
+        ur.residente_info && ur.residente_info.id === propietario.id
+      );
+      if (usuarioResidente) {
+        propietarioForm.setFieldsValue({
+          propietario_id: usuarioResidente.id
+        });
+      }
+    } else {
+      propietarioForm.resetFields();
+    }
+    setIsPropietarioModalVisible(true);
+  };
+
+  const handlePropietarioSubmit = async (values) => {
+    try {
+      if (values.propietario_id) {
+        // Buscar el usuario residente seleccionado
+        const usuarioResidente = usuariosResidentes.find(ur => ur.id === values.propietario_id);
+        if (!usuarioResidente) {
+          message.error('Usuario residente no encontrado');
+          return;
+        }
+
+        // Buscar o crear el residente asociado a este usuario
+        let residenteId;
+        if (usuarioResidente.residente_info) {
+          // Si ya tiene un residente asociado, usar ese ID
+          residenteId = usuarioResidente.residente_info.id;
+        } else {
+          // Si no tiene residente asociado, crear uno nuevo
+          try {
+            const nuevoResidente = await usuariosAPI.createResidente({
+              nombre: usuarioResidente.nombre_completo,
+              email: usuarioResidente.email,
+              usuario_asociado: usuarioResidente.id
+            });
+            residenteId = nuevoResidente.id;
+          } catch (error) {
+            message.error('Error al crear residente asociado: ' + error.message);
+            return;
+          }
+        }
+
+        // Crear o actualizar la relación como propietario
+        const relacionData = {
+          id_residente: residenteId,
+          id_unidad: selectedUnidad.id,
+          rol_en_unidad: 'propietario',
+          fecha_inicio: new Date().toISOString().slice(0, 10),
+          estado: true
+        };
+
+        // Verificar si ya existe una relación como propietario
+        const propietarioExistente = residentesUnidades.find(ru => 
+          ru.id_unidad === selectedUnidad.id && 
+          ru.rol_en_unidad === 'propietario' && 
+          ru.estado
+        );
+
+        if (propietarioExistente) {
+          // Actualizar relación existente
+          await api.put(`/comunidad/residentes-unidad/${propietarioExistente.id}/`, relacionData);
+        } else {
+          // Crear nueva relación
+          await api.post('/comunidad/residentes-unidad/', relacionData);
+        }
+
+        message.success('Propietario asignado exitosamente');
+      }
+      
+      setIsPropietarioModalVisible(false);
+      loadData();
+    } catch (error) {
+      console.error('Error al asignar propietario:', error);
+      message.error('Error al asignar propietario: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
+  const handleRemovePropietario = async () => {
+    try {
+      const propietarioExistente = residentesUnidades.find(ru => 
+        ru.id_unidad === selectedUnidad.id && 
+        ru.rol_en_unidad === 'propietario' && 
+        ru.estado
+      );
+
+      if (propietarioExistente) {
+        await api.delete(`/comunidad/residentes-unidad/${propietarioExistente.id}/`);
+        message.success('Propietario removido exitosamente');
+        setIsPropietarioModalVisible(false);
+        loadData();
+      }
+    } catch (error) {
+      console.error('Error al remover propietario:', error);
+      message.error('Error al remover propietario: ' + (error.response?.data?.detail || error.message));
+    }
+  };
+
 
   const formatArea = (metros) => {
     return `${metros} m²`;
@@ -210,6 +327,31 @@ const ListaUnidades = () => {
       responsive: ['md'],
       align: 'center',
       render: (_, record) => <span style={{ fontSize: '12px' }}>{formatArea(record.metros_cuadrados)}</span>,
+    },
+    {
+      title: 'Propietario',
+      key: 'propietario',
+      width: 200,
+      responsive: ['lg'],
+      render: (_, record) => {
+        const propietario = record.propietario_info;
+        if (propietario) {
+          return (
+            <div style={{ fontSize: '12px' }}>
+              <div style={{ fontWeight: 'bold' }}>
+                {propietario.nombre}
+              </div>
+              <div style={{ color: '#666', fontSize: '11px' }}>
+                {propietario.tiene_usuario ? 
+                  `👤 ${propietario.username} (${propietario.rol})` : 
+                  '👤 Sin usuario'
+                }
+              </div>
+            </div>
+          );
+        }
+        return <span style={{ color: '#999', fontSize: '12px' }}>Sin propietario</span>;
+      },
     },
     {
       title: 'Residentes',
@@ -279,6 +421,17 @@ const ListaUnidades = () => {
               style={{ padding: '4px 6px', fontSize: '11px', color: '#1890ff' }}
             >
               Ver
+            </Button>
+          </Tooltip>
+          <Tooltip title="Gestionar propietario">
+            <Button
+              type="link"
+              icon={<UserOutlined />}
+              onClick={() => showPropietarioModal(record)}
+              size="small"
+              style={{ padding: '4px 6px', fontSize: '11px', color: '#52c41a' }}
+            >
+              Propietario
             </Button>
           </Tooltip>
           <Button
@@ -526,12 +679,29 @@ const ListaUnidades = () => {
               <Descriptions.Item label="Área" span={1}>
                 <Tag color="green">{formatArea(selectedUnidad.metros_cuadrados)}</Tag>
               </Descriptions.Item>
+              <Descriptions.Item label="Propietario" span={1}>
+                {selectedUnidad.propietario_info ? (
+                  <div>
+                    <div style={{ fontWeight: 'bold' }}>
+                      {selectedUnidad.propietario_info.nombre}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>
+                      {selectedUnidad.propietario_info.tiene_usuario ? 
+                        `👤 ${selectedUnidad.propietario_info.username} (${selectedUnidad.propietario_info.rol})` : 
+                        '👤 Sin usuario'
+                      }
+                    </div>
+                  </div>
+                ) : (
+                  <Tag color="default">Sin propietario</Tag>
+                )}
+              </Descriptions.Item>
               <Descriptions.Item label="Estado" span={1}>
                 <Tag color={selectedUnidad.activa ? 'success' : 'default'}>
                   {selectedUnidad.activa ? 'ACTIVA' : 'INACTIVA'}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Fecha Creación" span={1}>
+              <Descriptions.Item label="Fecha Creación" span={2}>
                 {new Date(selectedUnidad.fecha_creacion).toLocaleDateString('es-CO')}
               </Descriptions.Item>
             </Descriptions>
@@ -636,6 +806,66 @@ const ListaUnidades = () => {
             </Collapse>
           </div>
         )}
+      </Modal>
+
+      {/* Modal para gestionar propietario */}
+      <Modal
+        title={
+          <Space>
+            <UserOutlined />
+            Gestionar Propietario - {selectedUnidad?.numero_casa}
+          </Space>
+        }
+        open={isPropietarioModalVisible}
+        onCancel={() => setIsPropietarioModalVisible(false)}
+        footer={null}
+        width={600}
+      >
+        <Form
+          form={propietarioForm}
+          layout="vertical"
+          onFinish={handlePropietarioSubmit}
+        >
+          <Form.Item
+            name="propietario_id"
+            label="Seleccionar Propietario"
+            rules={[{ required: true, message: 'Por favor seleccione un propietario' }]}
+          >
+            <Select
+              placeholder="Seleccionar usuario residente como propietario de la unidad"
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              {usuariosResidentes.map(usuarioResidente => (
+                <Option key={usuarioResidente.id} value={usuarioResidente.id}>
+                  {usuarioResidente.nombre_completo} ({usuarioResidente.username})
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                Asignar Propietario
+              </Button>
+              {selectedUnidad?.propietario_info && (
+                <Button 
+                  danger 
+                  onClick={handleRemovePropietario}
+                >
+                  Remover Propietario
+                </Button>
+              )}
+              <Button onClick={() => setIsPropietarioModalVisible(false)}>
+                Cancelar
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
       </Modal>
 
     </div>

@@ -326,7 +326,6 @@ const ListaResidentes = () => {
       dataIndex: 'id',
       key: 'id',
       width: 60,
-      responsive: ['xl'],
       align: 'center',
     },
     {
@@ -334,43 +333,38 @@ const ListaResidentes = () => {
       dataIndex: 'ci',
       key: 'ci',
       width: 130,
-      responsive: ['lg'],
-      render: (ci) => <span style={{ fontSize: '12px' }}>{ci || '-'}</span>,
+      render: (ci) => <span>{ci || '-'}</span>,
     },
     {
       title: 'Nombre Completo',
       dataIndex: 'nombre',
       key: 'nombre',
       width: 200,
-      fixed: 'left',
-      render: (nombre) => <strong style={{ fontSize: '13px' }}>{nombre}</strong>,
+      render: (nombre) => <strong>{nombre}</strong>,
     },
     {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
       width: 220,
-      responsive: ['xl'],
-      render: (email) => <span style={{ fontSize: '12px' }}>{email || '-'}</span>,
+      render: (email) => <span>{email || '-'}</span>,
     },
     {
       title: 'Teléfono',
       dataIndex: 'telefono',
       key: 'telefono',
       width: 140,
-      responsive: ['xl'],
-      render: (telefono) => <span style={{ fontSize: '12px' }}>{telefono || '-'}</span>,
+      render: (telefono) => <span>{telefono || '-'}</span>,
     },
     {
       title: 'Tipo',
       dataIndex: 'tipo',
       key: 'tipo',
       width: 110,
-      responsive: ['sm'],
       align: 'center',
       render: (tipo) => {
         const color = tipo === 'residente' ? 'green' : tipo === 'inquilino' ? 'blue' : 'default';
-        return <Tag color={color} size="small">{tipo}</Tag>;
+        return <Tag color={color}>{tipo}</Tag>;
       },
     },
     {
@@ -378,14 +372,12 @@ const ListaResidentes = () => {
       dataIndex: 'unidad_nombre',
       key: 'unidad',
       width: 130,
-      responsive: ['md'],
-      render: (unidad) => <span style={{ fontSize: '12px' }}>{unidad || '-'}</span>,
+      render: (unidad) => <span>{unidad || '-'}</span>,
     },
     {
       title: 'Usuario Asociado',
       key: 'usuario_asociado',
       width: 150,
-      responsive: ['xl'],
       render: (_, record) => {
         if (record.usuario_asociado) {
           return (
@@ -470,18 +462,60 @@ const ListaResidentes = () => {
   }
 
   return (
-    <div className="dashboard-usuarios residentes-container">
+    <div className="dashboard-usuarios">
       <div className="dashboard-header">
-        <h1>
-          <HomeOutlined /> Gestión de Residentes e Inquilinos
-        </h1>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
+        <h1>Gestión de Residentes e Inquilinos</h1>
+        <Button 
+          type="primary" 
+          icon={<PlusOutlined />}
+          onClick={() => showModal()}
+          size="large"
+        >
           Nuevo Residente
         </Button>
       </div>
 
-      {/* Filtros y búsqueda */}
-      <Card className="usuarios-filters" style={{ marginBottom: 20 }}>
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
+
+      {/* Estadísticas */}
+      <div className="usuarios-stats">
+        <Card className="stat-card">
+          <div className="stat-content">
+            <div className="stat-icon">👥</div>
+            <div>
+              <h3>TOTAL RESIDENTES</h3>
+              <p className="stat-value">{residentes.length}</p>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="stat-card">
+          <div className="stat-content">
+            <div className="stat-icon">🏠</div>
+            <div>
+              <h3>RESIDENTES</h3>
+              <p className="stat-value">{residentes.filter(r => r.tipo === 'residente').length}</p>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="stat-card">
+          <div className="stat-content">
+            <div className="stat-icon">🏢</div>
+            <div>
+              <h3>INQUILINOS</h3>
+              <p className="stat-value">{residentes.filter(r => r.tipo === 'inquilino').length}</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Filtros */}
+      <div className="usuarios-filters">
         <Space wrap>
           <Input
             placeholder="Buscar por CI, nombre o email..."
@@ -494,81 +528,28 @@ const ListaResidentes = () => {
             placeholder="Filtrar por tipo"
             value={filterTipo}
             onChange={setFilterTipo}
-            style={{ width: 150 }}
+            style={{ width: 200 }}
             allowClear
           >
             <Option value="residente">Residente</Option>
             <Option value="inquilino">Inquilino</Option>
           </Select>
-          <Button 
-            icon={<FilterOutlined />} 
-            onClick={() => {
-              setSearchText('');
-              setFilterTipo('');
-            }}
-          >
-            Limpiar Filtros
-          </Button>
         </Space>
-      </Card>
-
-      {/* Estadísticas */}
-      <div style={{ display: 'flex', gap: '16px', marginBottom: '20px' }}>
-        <Card size="small" style={{ flex: 1 }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', marginBottom: '8px' }}>👥</div>
-            <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{residentes.length}</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Total Personas</div>
-          </div>
-        </Card>
-        <Card size="small" style={{ flex: 1 }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', marginBottom: '8px' }}>🏠</div>
-            <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{residentes.filter(r => r.tipo === 'residente').length}</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Residentes</div>
-          </div>
-        </Card>
-        <Card size="small" style={{ flex: 1 }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', marginBottom: '8px' }}>🏢</div>
-            <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{residentes.filter(r => r.tipo === 'inquilino').length}</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Inquilinos</div>
-          </div>
-        </Card>
-        <Card size="small" style={{ flex: 1 }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '24px', marginBottom: '8px' }}>👨‍👩‍👧‍👦</div>
-            <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{residentes.filter(r => r.usuario_asociado).length}</div>
-            <div style={{ fontSize: '12px', color: '#666' }}>Con Usuario</div>
-          </div>
-        </Card>
       </div>
 
-      {/* Tabla de Residentes */}
-      <Card
-        title={`Residentes e Inquilinos (${filteredResidentes.length})`}
-        className="usuarios-table"
-        size="small"
-        extra={
-          <Button type="link" size="small" onClick={loadData}>
-            Actualizar
-          </Button>
-        }
-      >
+      {/* Tabla */}
+      <Card className="usuarios-table">
         <Table
           columns={columns}
           dataSource={filteredResidentes}
           rowKey="id"
-          size="small"
+          loading={loading}
           pagination={{
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} de ${total}`,
-            size: 'small',
-            responsive: true
+            showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} residentes`,
           }}
-          scroll={{ x: 'max-content' }}
           responsive={true}
         />
       </Card>

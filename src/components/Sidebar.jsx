@@ -41,7 +41,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
           { id: 'cu6', label: 'CU6 - Gestión de Unidades', path: '/unidades', implemented: true, roles: ['administrador', 'residente'] },
           { id: 'cu5-mascotas', label: 'CU5 - Gestión de Mascotas', path: '/mascotas', implemented: true, roles: ['administrador', 'residente'] },
           { id: 'cu11', label: 'CU11 - Gestión de Eventos', path: '/eventos', implemented: true, roles: ['administrador', 'residente'] },
-          { id: 'cu12', label: 'CU12 - Gestión de Reclamos', path: '/reclamos', implemented: true, roles: ['administrador', 'residente'] },
+          { id: 'cu12', label: 'CU12 - Gestión de Comunicados', path: '/reclamos', implemented: true, roles: ['administrador', 'residente'] },
           { id: 'cu17', label: 'CU17 - Gestión de Áreas Comunes', path: '/areas-comunes', implemented: true, roles: ['administrador', 'residente'] }
         ]
       },
@@ -50,7 +50,9 @@ const Sidebar = ({ isOpen, onToggle }) => {
         label: 'Pagos y Finanzas',
         icon: '💰',
         cases: [
-          { id: 'cu18', label: 'CU18 - Reportes Financieros', path: '/reportes-financieros', implemented: true, roles: ['administrador', 'residente'] }
+          { id: 'cu18', label: 'CU18 - Reportes Financieros', path: '/reportes-financieros', implemented: false, roles: ['administrador'] },
+          { id: 'cu21', label: 'CU21 - Gestión de Presupuestos', path: '/presupuestos', implemented: false, roles: ['administrador'] },
+          { id: 'cu22', label: 'CU22 - Gestión de Cuotas y Expensas', path: '/cuotas', implemented: true, roles: ['administrador'] }
         ]
       },
       {
@@ -69,7 +71,10 @@ const Sidebar = ({ isOpen, onToggle }) => {
         label: 'Mantenimiento y Reservas',
         icon: '🔧',
         cases: [
-          { id: 'cu10', label: 'CU10 - Gestión de Mantenimiento', path: '/mantenimiento', implemented: true, roles: ['administrador', 'empleado'] }
+          { id: 'cu10', label: 'CU10 - Gestión de Mantenimiento', path: '/mantenimiento', implemented: false, roles: ['administrador', 'empleado'] },
+          { id: 'cu16', label: 'CU16 - Reservas de Áreas', path: '/reservas', implemented: false, roles: ['administrador', 'residente'] },
+          { id: 'cu23', label: 'CU23 - Control de Inventario', path: '/inventario', implemented: false, roles: ['administrador', 'empleado'] },
+          { id: 'cu24', label: 'CU24 - Programación de Mantenimiento', path: '/programacion-mantenimiento', implemented: false, roles: ['administrador', 'empleado'] }
         ]
       }
     ];

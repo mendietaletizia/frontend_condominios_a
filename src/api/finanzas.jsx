@@ -1,101 +1,202 @@
-// API de Finanzas
+// API de Finanzas - CU22: Gestionar Cuotas y Expensas
 import api from './config';
 
 export const finanzasAPI = {
-  // Obtener todos los pagos
-  async getPagos() {
+  // ===== CUOTAS MENSUALES =====
+  async getCuotasMensuales() {
     try {
-      const response = await api.get('/finanzas/pago/');
+      const response = await api.get('/finanzas/cuotas-mensuales/');
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Obtener un pago por ID
-  async getPago(id) {
+  async getCuotaMensual(id) {
     try {
-      const response = await api.get(`/finanzas/pago/${id}/`);
+      const response = await api.get(`/finanzas/cuotas-mensuales/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Crear un nuevo pago
-  async createPago(pagoData) {
+  async createCuotaMensual(cuotaData) {
     try {
-      const response = await api.post('/finanzas/pago/', pagoData);
+      const response = await api.post('/finanzas/cuotas-mensuales/', cuotaData);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Actualizar un pago
-  async updatePago(id, pagoData) {
+  async updateCuotaMensual(id, cuotaData) {
     try {
-      const response = await api.put(`/finanzas/pago/${id}/`, pagoData);
+      const response = await api.put(`/finanzas/cuotas-mensuales/${id}/`, cuotaData);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Eliminar un pago
-  async deletePago(id) {
+  async deleteCuotaMensual(id) {
     try {
-      const response = await api.delete(`/finanzas/pago/${id}/`);
+      const response = await api.delete(`/finanzas/cuotas-mensuales/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Obtener todas las expensas
-  async getExpensas() {
+  async generarCuotasUnidades(cuotaId) {
     try {
-      const response = await api.get('/finanzas/expensa/');
+      const response = await api.post(`/finanzas/cuotas-mensuales/${cuotaId}/generar_cuotas_unidades/`);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Obtener una expensa por ID
-  async getExpensa(id) {
+  async getResumenCuotas() {
     try {
-      const response = await api.get(`/finanzas/expensa/${id}/`);
+      const response = await api.get('/finanzas/cuotas-mensuales/resumen/');
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Crear una nueva expensa
-  async createExpensa(expensaData) {
+  // ===== CUOTAS POR UNIDAD =====
+  async getCuotasUnidad() {
     try {
-      const response = await api.post('/finanzas/expensa/', expensaData);
+      const response = await api.get('/finanzas/cuotas-unidad/');
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Actualizar una expensa
-  async updateExpensa(id, expensaData) {
+  async getCuotaUnidad(id) {
     try {
-      const response = await api.put(`/finanzas/expensa/${id}/`, expensaData);
+      const response = await api.get(`/finanzas/cuotas-unidad/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  // Eliminar una expensa
-  async deleteExpensa(id) {
+  async updateCuotaUnidad(id, cuotaData) {
     try {
-      const response = await api.delete(`/finanzas/expensa/${id}/`);
+      const response = await api.put(`/finanzas/cuotas-unidad/${id}/`, cuotaData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async deleteCuotaUnidad(id) {
+    try {
+      const response = await api.delete(`/finanzas/cuotas-unidad/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getMorosos() {
+    try {
+      const response = await api.get('/finanzas/cuotas-unidad/morosos/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getCuotasPendientes() {
+    try {
+      const response = await api.get('/finanzas/cuotas-unidad/pendientes/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getCuotasVencidas() {
+    try {
+      const response = await api.get('/finanzas/cuotas-unidad/vencidas/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async registrarPago(cuotaId, pagoData) {
+    try {
+      const response = await api.post(`/finanzas/cuotas-unidad/${cuotaId}/registrar_pago/`, pagoData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ===== PAGOS DE CUOTAS (CU22) =====
+  async getPagosCuotas() {
+    try {
+      const response = await api.get('/finanzas/pagos/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getPagoCuota(id) {
+    try {
+      const response = await api.get(`/finanzas/pagos/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async createPagoCuota(pagoData) {
+    try {
+      const response = await api.post('/finanzas/pagos/', pagoData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async updatePagoCuota(id, pagoData) {
+    try {
+      const response = await api.put(`/finanzas/pagos/${id}/`, pagoData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async deletePagoCuota(id) {
+    try {
+      const response = await api.delete(`/finanzas/pagos/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getPagosCuotasPorMes(mesAño) {
+    try {
+      const response = await api.get(`/finanzas/pagos/por_mes/?mes_año=${mesAño}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getPagosCuotasPorUnidad(unidadId) {
+    try {
+      const response = await api.get(`/finanzas/pagos/por_unidad/?unidad_id=${unidadId}`);
       return response.data;
     } catch (error) {
       throw error;

@@ -29,13 +29,11 @@ const Dashboard = () => {
         });
       } else if (canAccess('residente')) {
         // Cargar datos específicos del residente
-        const [pagosRes, notificacionesRes] = await Promise.all([
-          finanzasAPI.getPagos(),
+        const [notificacionesRes] = await Promise.all([
           comunidadAPI.getNotificaciones()
         ]);
         
         setStats({
-          pagos: pagosRes,
           notificaciones: notificacionesRes
         });
       }
@@ -114,12 +112,6 @@ const Dashboard = () => {
       <h2>Mi Dashboard</h2>
       
       <div className="resident-info">
-        <div className="info-card">
-          <h3>Mis Pagos</h3>
-          <p>Total de pagos: {stats.pagos?.length || 0}</p>
-          <p>Pagos pendientes: {stats.pagos?.filter(p => p.estado_pago === 'pendiente').length || 0}</p>
-        </div>
-        
         <div className="info-card">
           <h3>Notificaciones</h3>
           <p>Total: {stats.notificaciones?.length || 0}</p>

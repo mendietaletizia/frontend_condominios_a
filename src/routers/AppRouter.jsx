@@ -17,7 +17,7 @@ import ListaUnidades from '../comunidad/ListaUnidades';
 import ListaMascotas from '../comunidad/ListaMascotas';
 import ListaGastos from '../economia/ListaGastos';
 import ListaMultas from '../economia/ListaMultas';
-import ListaPagos from '../finanzas/ListaPagos';
+import GestionCuotas from '../finanzas/GestionCuotas';
 import DashboardAcceso from '../acceso/DashboardAcceso';
 import DashboardInvitados from '../invitados/DashboardInvitados';
 import Layout from '../components/Layout';
@@ -175,14 +175,6 @@ const AppRouter = () => {
 
           {/* ===== PAGOS Y FINANZAS ===== */}
           <Route 
-            path="pagos" 
-            element={
-              <ProtectedRoute requiredRoles={['administrador', 'residente']}>
-                <ListaPagos />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
             path="reportes-financieros" 
             element={
               <ProtectedRoute requiredRoles={['administrador']}>
@@ -205,13 +197,10 @@ const AppRouter = () => {
             } 
           />
           <Route 
-            path="conciliacion" 
+            path="cuotas" 
             element={
               <ProtectedRoute requiredRoles={['administrador']}>
-                <NotImplemented 
-                  title="CU22 - Conciliación Bancaria"
-                  description="Sistema de conciliación bancaria y control de movimientos financieros."
-                />
+                <GestionCuotas />
               </ProtectedRoute>
             } 
           />
