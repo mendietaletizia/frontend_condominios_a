@@ -4,6 +4,13 @@
   min-height: 100vh;
 }
 
+/* Laptop specific optimizations */
+@media (max-width: 1366px) and (min-width: 1024px) {
+  .dashboard-acceso {
+    padding: 16px;
+  }
+}
+
 .dashboard-header {
   display: flex;
   justify-content: space-between;
@@ -100,23 +107,41 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1200px) {
+  .dashboard-acceso {
+    padding: 16px;
+  }
+  
+  .stats-row .ant-col {
+    margin-bottom: 12px;
+  }
+  
+  .metrics-content {
+    padding: 0 12px;
+  }
+}
+
 @media (max-width: 768px) {
+  .dashboard-acceso {
+    padding: 12px;
+  }
+  
   .dashboard-header {
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
     text-align: center;
   }
 
   .dashboard-header h1 {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .stats-row .ant-col {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   .metrics-content {
-    padding: 0 16px;
+    padding: 0 12px;
   }
 
   .metric-item {
@@ -126,42 +151,54 @@
   }
 
   .metric-value {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .recent-records .ant-table {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .recent-records .ant-table-thead > tr > th {
-    padding: 8px 4px;
+    padding: 6px 3px;
   }
 
   .recent-records .ant-table-tbody > tr > td {
-    padding: 8px 4px;
+    padding: 6px 3px;
   }
 }
 
 @media (max-width: 480px) {
   .dashboard-acceso {
-    padding: 12px;
+    padding: 8px;
   }
 
   .dashboard-header h1 {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .stats-row {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   .metrics-row {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
 
   .quick-actions .ant-btn {
-    margin: 4px;
-    font-size: 12px;
+    margin: 2px;
+    font-size: 11px;
+  }
+  
+  .recent-records .ant-table {
+    font-size: 10px;
+  }
+
+  .recent-records .ant-table-thead > tr > th {
+    padding: 4px 2px;
+  }
+
+  .recent-records .ant-table-tbody > tr > td {
+    padding: 4px 2px;
   }
 }
 

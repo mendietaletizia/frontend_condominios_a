@@ -1,98 +1,162 @@
-/* GestionCuotas.css - Estilos para gestión de cuotas y expensas */
+/* GestionCuotas.css - Estilos basados en ListaUnidades.css para consistencia */
 
 .dashboard-finanzas {
-  padding: 24px;
+  padding: 20px;
   background-color: #f5f5f5;
   min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
+}
+
+/* Laptop specific optimizations */
+@media (max-width: 1366px) and (min-width: 1024px) {
+  .dashboard-finanzas {
+    padding: 16px;
+  }
 }
 
 .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  padding: 0 2px;
 }
 
 .dashboard-header h1 {
-  color: white;
+  color: #2c3e50;
   margin: 0;
-  font-size: 28px;
-  font-weight: 600;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.dashboard-header .ant-btn {
-  background: #1890ff;
-  border: 1px solid #1890ff;
-  color: white;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(24, 144, 255, 0.3);
-}
-
-.dashboard-header .ant-btn:hover {
-  background: #40a9ff;
-  border-color: #40a9ff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
-}
-
-/* Estadísticas */
-.ant-statistic {
-  text-align: center;
-}
-
-.ant-statistic-title {
-  color: #666;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 8px;
-}
-
-.ant-statistic-content {
-  color: #333;
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 600;
+}
+
+.dashboard-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  font-size: 16px;
+  color: #666;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #f5c6cb;
+  font-size: 14px;
+}
+
+.access-denied {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.access-denied h2 {
+  color: #dc3545;
+  margin-bottom: 16px;
+}
+
+.stats-row {
+  margin-bottom: 20px;
+}
+
+.metrics-row {
+  margin-bottom: 20px;
+}
+
+.metrics-card {
+  height: 100%;
+}
+
+.metrics-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.metric-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.metric-item:last-child {
+  border-bottom: none;
+}
+
+.metric-label {
+  font-size: 14px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.metric-value.success {
+  color: #52c41a;
+}
+
+.metric-value.error {
+  color: #ff4d4f;
+}
+
+.metric-value.warning {
+  color: #faad14;
 }
 
 /* Cards de estadísticas */
 .ant-card {
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e1e5e9;
   transition: all 0.3s ease;
+  padding: 16px;
 }
 
 .ant-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }
 
 /* Tabla */
 .ant-table {
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e1e5e9;
 }
 
 .ant-table-thead > tr > th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: #fafafa;
+  color: #262626;
   font-weight: 600;
   border: none;
   padding: 16px 12px;
+  font-size: 14px;
 }
 
 .ant-table-tbody > tr > td {
-  padding: 16px 12px;
+  padding: 12px 12px;
   border-bottom: 1px solid #f0f0f0;
   transition: all 0.3s ease;
+  font-size: 13px;
 }
 
 .ant-table-tbody > tr:hover > td {
-  background-color: #f8f9ff;
+  background-color: #f5f5f5;
 }
 
 .ant-table-tbody > tr:last-child > td {
@@ -101,9 +165,12 @@
 
 /* Botones de acción */
 .ant-btn {
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: 500;
   transition: all 0.3s ease;
+  font-size: 12px;
+  padding: 6px 12px;
+  height: 32px;
 }
 
 .ant-btn-primary {
@@ -122,15 +189,15 @@
 .ant-tag {
   border-radius: 6px;
   font-weight: 500;
-  padding: 4px 12px;
-  border: none;
   font-size: 12px;
+  padding: 4px 10px;
+  border: none;
 }
 
 /* Modal */
 .ant-modal .ant-modal-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px 12px 0 0;
+  border-radius: 8px 8px 0 0;
 }
 
 .ant-modal .ant-modal-title {
@@ -151,13 +218,13 @@
 }
 
 .ant-modal .ant-form-item-label > label {
-  font-weight: 600;
-  color: #333;
+  font-weight: 500;
+  color: #262626;
 }
 
 .ant-modal .ant-input,
 .ant-modal .ant-select .ant-select-selector {
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid #d9d9d9;
   transition: all 0.3s ease;
 }
@@ -168,56 +235,13 @@
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
-/* Mensaje de error */
-.error-message {
-  background: #fff2f0;
-  border: 1px solid #ffccc7;
-  color: #ff4d4f;
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-weight: 500;
-}
-
-/* Acceso denegado */
-.access-denied {
-  text-align: center;
-  padding: 60px 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.access-denied h2 {
-  color: #ff4d4f;
-  margin-bottom: 16px;
-  font-size: 24px;
-}
-
-.access-denied p {
-  color: #666;
-  font-size: 16px;
-  margin: 0;
-}
-
-/* Loading */
-.dashboard-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 400px;
-  color: #666;
-  font-size: 16px;
-}
-
 /* Filtros */
 .ant-select {
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .ant-select .ant-select-selector {
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid #d9d9d9;
   transition: all 0.3s ease;
 }
@@ -231,64 +255,136 @@
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* Responsive design */
+@media (max-width: 1200px) {
   .dashboard-finanzas {
-    padding: 16px;
-  }
-  
-  .dashboard-header {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
+    padding: 20px;
   }
   
   .dashboard-header h1 {
-    font-size: 20px;
-  }
-  
-  .ant-statistic-content {
-    font-size: 20px;
+    font-size: 24px;
   }
   
   .ant-table-thead > tr > th,
   .ant-table-tbody > tr > td {
-    padding: 8px 4px;
+    padding: 12px 8px;
     font-size: 12px;
   }
   
-  .ant-btn {
-    padding: 4px 8px;
+  .ant-table-thead > tr > th {
     font-size: 12px;
   }
 }
 
-@media (max-width: 576px) {
+@media (max-width: 992px) {
   .dashboard-finanzas {
-    padding: 8px;
+    padding: 20px;
   }
-  
-  .dashboard-header {
-    padding: 12px;
-  }
-  
+
   .dashboard-header h1 {
-    font-size: 18px;
+    font-size: 22px;
   }
-  
-  .ant-statistic-content {
-    font-size: 18px;
-  }
-  
+
   .ant-table-thead > tr > th,
   .ant-table-tbody > tr > td {
-    padding: 6px 2px;
+    padding: 10px 6px;
     font-size: 11px;
   }
   
-  .ant-btn {
-    padding: 2px 4px;
+  .ant-table-thead > tr > th {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-finanzas {
+    padding: 12px;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 0;
+  }
+
+  .dashboard-header h1 {
+    font-size: 20px;
+  }
+
+  /* Tabla responsive */
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 8px 4px;
     font-size: 10px;
+  }
+
+  .ant-table-thead > tr > th {
+    font-size: 10px;
+  }
+
+  /* Modal responsive */
+  .ant-modal {
+    width: 95% !important;
+    max-width: none !important;
+    margin: 10px auto;
+  }
+
+  .ant-modal-content {
+    border-radius: 4px;
+  }
+
+  /* Tags más pequeños */
+  .ant-tag {
+    font-size: 8px;
+    padding: 1px 3px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-finanzas {
+    padding: 6px;
+  }
+
+  .dashboard-header {
+    padding: 0;
+  }
+
+  .dashboard-header h1 {
+    font-size: 18px;
+  }
+
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td {
+    padding: 6px 2px;
+    font-size: 9px;
+  }
+
+  .ant-table-thead > tr > th {
+    font-size: 9px;
+  }
+
+  .ant-modal {
+    width: 98% !important;
+    margin: 6px auto;
+  }
+
+  .ant-tag {
+    font-size: 7px;
+    padding: 1px 3px;
+  }
+
+  /* Paginación más compacta */
+  .ant-pagination {
+    text-align: center;
+  }
+
+  .ant-pagination-item,
+  .ant-pagination-prev,
+  .ant-pagination-next {
+    min-width: 20px;
+    height: 20px;
+    line-height: 18px;
   }
 }
 

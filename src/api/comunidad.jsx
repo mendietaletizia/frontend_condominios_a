@@ -150,5 +150,25 @@ export const comunidadAPI = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Actualizar comunicado existente
+  async updateComunicado(id, data) {
+    try {
+      const res = await api.put(`/comunidad/notificaciones/${id}/`, data);
+      return res.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Eliminar comunicado
+  async deleteComunicado(id) {
+    try {
+      const res = await api.delete(`/comunidad/notificaciones/${id}/`);
+      return res.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };

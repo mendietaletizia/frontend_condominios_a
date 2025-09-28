@@ -1,7 +1,7 @@
 /* ListaResidentes.css - Estilos para gestión de residentes */
 
 .dashboard-usuarios {
-  padding: 24px;
+  padding: 20px;
   background-color: #f5f5f5;
   min-height: 100vh;
 }
@@ -315,7 +315,7 @@
 /* Responsive */
 @media (max-width: 1200px) {
   .dashboard-usuarios {
-    padding: 20px;
+    padding: 16px;
   }
   
   .usuarios-stats {
@@ -342,82 +342,106 @@
   }
 }
 
-@media (max-width: 992px) {
+/* Laptop specific optimizations */
+@media (max-width: 1366px) and (min-width: 1024px) {
   .dashboard-usuarios {
     padding: 16px;
   }
   
   .dashboard-header {
     padding: 16px;
-  }
-  
-  .dashboard-header h1 {
-    font-size: 24px;
   }
   
   .usuarios-stats {
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-  }
-  
-  .usuarios-filters {
-    padding: 16px;
-  }
-  
-  .usuarios-table .ant-table-thead > tr > th,
-  .usuarios-table .ant-table-tbody > tr > td {
-    padding: 12px 8px;
-    font-size: 13px;
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-usuarios {
-    padding: 12px;
-  }
-  
-  .dashboard-header {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
-    padding: 16px;
-  }
-  
-  .dashboard-header h1 {
-    font-size: 20px;
-  }
-  
-  .usuarios-stats {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 14px;
   }
   
   .stat-card .ant-card-body {
     padding: 16px;
   }
   
-  .stat-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
+  .usuarios-filters {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 992px) {
+  .dashboard-usuarios {
+    padding: 12px;
   }
   
-  .stat-icon {
-    font-size: 24px;
-    width: 40px;
-    height: 40px;
+  .dashboard-header {
+    padding: 14px;
   }
   
-  .stat-content h3 {
-    font-size: 11px;
+  .dashboard-header h1 {
+    font-size: 22px;
   }
   
-  .stat-value {
-    font-size: 18px;
+  .usuarios-stats {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
   }
   
   .usuarios-filters {
+    padding: 14px;
+  }
+  
+  .usuarios-table .ant-table-thead > tr > th,
+  .usuarios-table .ant-table-tbody > tr > td {
+    padding: 10px 6px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-usuarios {
+    padding: 10px;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    gap: 14px;
+    text-align: center;
+    padding: 14px;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 18px;
+  }
+  
+  .usuarios-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .stat-card .ant-card-body {
     padding: 12px;
+  }
+  
+  .stat-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 6px;
+  }
+  
+  .stat-icon {
+    font-size: 22px;
+    width: 36px;
+    height: 36px;
+  }
+  
+  .stat-content h3 {
+    font-size: 10px;
+  }
+  
+  .stat-value {
+    font-size: 16px;
+  }
+  
+  .usuarios-filters {
+    padding: 10px;
   }
   
   .usuarios-filters .ant-space {
@@ -431,75 +455,12 @@
   
   .usuarios-table .ant-table-thead > tr > th,
   .usuarios-table .ant-table-tbody > tr > td {
-    padding: 8px 6px;
-    font-size: 12px;
-  }
-  
-  .usuarios-table .ant-btn {
-    padding: 2px 4px;
-    font-size: 10px;
-  }
-  
-  .usuarios-table .ant-tag {
-    font-size: 10px;
-    padding: 2px 6px;
-  }
-}
-
-@media (max-width: 576px) {
-  .dashboard-usuarios {
-    padding: 8px;
-  }
-  
-  .dashboard-header {
-    padding: 12px;
-  }
-  
-  .dashboard-header h1 {
-    font-size: 18px;
-  }
-  
-  .usuarios-stats {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  
-  .stat-card .ant-card-body {
-    padding: 12px;
-  }
-  
-  .stat-content {
-    flex-direction: row;
-    text-align: left;
-    gap: 10px;
-  }
-  
-  .stat-icon {
-    font-size: 20px;
-    width: 35px;
-    height: 35px;
-  }
-  
-  .stat-content h3 {
-    font-size: 10px;
-  }
-  
-  .stat-value {
-    font-size: 16px;
-  }
-  
-  .usuarios-filters {
-    padding: 8px;
-  }
-  
-  .usuarios-table .ant-table-thead > tr > th,
-  .usuarios-table .ant-table-tbody > tr > td {
     padding: 6px 4px;
     font-size: 11px;
   }
   
   .usuarios-table .ant-btn {
-    padding: 1px 3px;
+    padding: 2px 4px;
     font-size: 9px;
   }
   
@@ -507,40 +468,40 @@
     font-size: 9px;
     padding: 1px 4px;
   }
-  
-  /* Ocultar columnas menos importantes en móviles */
-  .usuarios-table .ant-table-thead > tr > th:nth-child(4),
-  .usuarios-table .ant-table-tbody > tr > td:nth-child(4) {
-    display: none; /* Información Personal */
-  }
-  
-  .usuarios-table .ant-table-thead > tr > th:nth-child(6),
-  .usuarios-table .ant-table-tbody > tr > td:nth-child(6) {
-    display: none; /* Usuario */
-  }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 576px) {
   .dashboard-usuarios {
-    padding: 4px;
+    padding: 6px;
   }
   
   .dashboard-header {
-    padding: 8px;
+    padding: 10px;
   }
   
   .dashboard-header h1 {
     font-size: 16px;
   }
   
+  .usuarios-stats {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  
   .stat-card .ant-card-body {
-    padding: 8px;
+    padding: 10px;
+  }
+  
+  .stat-content {
+    flex-direction: row;
+    text-align: left;
+    gap: 8px;
   }
   
   .stat-icon {
     font-size: 18px;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
   }
   
   .stat-content h3 {
@@ -569,6 +530,69 @@
   .usuarios-table .ant-tag {
     font-size: 8px;
     padding: 1px 3px;
+  }
+  
+  /* Ocultar columnas menos importantes en móviles */
+  .usuarios-table .ant-table-thead > tr > th:nth-child(4),
+  .usuarios-table .ant-table-tbody > tr > td:nth-child(4) {
+    display: none; /* Información Personal */
+  }
+  
+  .usuarios-table .ant-table-thead > tr > th:nth-child(6),
+  .usuarios-table .ant-table-tbody > tr > td:nth-child(6) {
+    display: none; /* Usuario */
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-usuarios {
+    padding: 4px;
+  }
+  
+  .dashboard-header {
+    padding: 8px;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 14px;
+  }
+  
+  .stat-card .ant-card-body {
+    padding: 8px;
+  }
+  
+  .stat-icon {
+    font-size: 16px;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .stat-content h3 {
+    font-size: 8px;
+  }
+  
+  .stat-value {
+    font-size: 12px;
+  }
+  
+  .usuarios-filters {
+    padding: 4px;
+  }
+  
+  .usuarios-table .ant-table-thead > tr > th,
+  .usuarios-table .ant-table-tbody > tr > td {
+    padding: 3px 1px;
+    font-size: 9px;
+  }
+  
+  .usuarios-table .ant-btn {
+    padding: 1px 2px;
+    font-size: 7px;
+  }
+  
+  .usuarios-table .ant-tag {
+    font-size: 7px;
+    padding: 1px 2px;
   }
   
   /* Ocultar más columnas en pantallas muy pequeñas */

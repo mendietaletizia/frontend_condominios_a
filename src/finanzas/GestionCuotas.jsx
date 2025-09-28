@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Tooltip, Badge, Statistic, Row, Col, DatePicker, InputNumber, Divider, Radio } from 'antd';
 import { 
-  PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, 
+  PlusOutlined, EditOutlined, DeleteOutlined, 
   DollarOutlined, CalendarOutlined, UserOutlined, HomeOutlined,
   CalculatorOutlined, AlertOutlined, CheckCircleOutlined, ExclamationCircleOutlined
 } from '@ant-design/icons';
@@ -270,16 +270,6 @@ const GestionCuotas = () => {
               Eliminar
             </Button>
           </Tooltip>
-          <Tooltip title="Ver Detalles">
-            <Button
-              type="link"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleVerDetalles(record)}
-            >
-              Ver
-            </Button>
-          </Tooltip>
         </Space>
       ),
     },
@@ -308,10 +298,6 @@ const GestionCuotas = () => {
     setIsPagoModalVisible(true);
   };
 
-  const handleVerDetalles = (cuotaUnidad) => {
-    // Implementar modal de detalles
-    message.info('Funcionalidad de detalles en desarrollo');
-  };
 
   const handleEditarCuota = (cuotaUnidad) => {
     console.log('Editando cuota:', cuotaUnidad);
@@ -443,7 +429,7 @@ const GestionCuotas = () => {
             icon={<PlusOutlined />}
             onClick={handleCrearCuota}
           >
-            Nueva Cuota Mensual
+            Nueva Cuota
           </Button>
         </Space>
       </div>
@@ -454,9 +440,8 @@ const GestionCuotas = () => {
         </div>
       )}
 
-
       {/* Estadísticas */}
-      <Row gutter={16} style={{ marginBottom: 24 }}>
+      <Row gutter={16} className="stats-row">
         <Col span={6}>
           <Card>
             <Statistic
@@ -498,7 +483,7 @@ const GestionCuotas = () => {
         </Col>
       </Row>
 
-      <Row gutter={16} style={{ marginBottom: 24 }}>
+      <Row gutter={16} className="metrics-row">
         <Col span={8}>
           <Card>
             <Statistic
@@ -535,7 +520,7 @@ const GestionCuotas = () => {
       </Row>
 
       {/* Filtros */}
-      <Card style={{ marginBottom: 16 }}>
+      <Card style={{ marginBottom: 24 }}>
         <Space wrap>
           <Select
             placeholder="Filtrar por mes"

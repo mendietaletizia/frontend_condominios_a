@@ -107,7 +107,7 @@ const ListaResidentes = () => {
           nombre: persona ? persona.nombre : '-',
           email: persona ? persona.email : '-',
           telefono: persona ? persona.telefono : '-',
-          tipo: unidadActiva ? unidadActiva.rol_en_unidad : 'Sin unidad asignada',
+          tipo: unidadActiva ? (unidadActiva.rol_en_unidad === 'propietario' ? 'Responsable de Unidad' : unidadActiva.rol_en_unidad) : 'Sin unidad asignada',
           unidad_nombre: unidadActiva ? unidadActiva.numero_casa : 'Sin asignar',
           usuario: residente.usuario,
           usuario_asociado: usuarioAsociado ? usuarioAsociado.username : null,
@@ -135,7 +135,8 @@ const ListaResidentes = () => {
         nombre: residente.nombre !== '-' ? residente.nombre : '',
         email: residente.email !== '-' ? residente.email : '',
         telefono: residente.telefono !== '-' ? residente.telefono : '',
-        tipo: residente.tipo && residente.tipo !== 'Sin unidad asignada' ? residente.tipo : 'residente',
+        tipo: residente.tipo && residente.tipo !== 'Sin unidad asignada' ? 
+          (residente.tipo === 'Responsable de Unidad' ? 'propietario' : residente.tipo) : 'residente',
         unidad: residente.unidad_nombre !== 'Sin asignar' ? 
           unidades.find(u => u.numero_casa === residente.unidad_nombre)?.id || '' : '',
         usuario_asociado: usuariosResidentes.find(u => u.username === residente.usuario_asociado)?.id || ''
@@ -169,31 +170,50 @@ const ListaResidentes = () => {
   };
 
   const handleCreate = async (values) => {
-    // 1. Crear persona
-    const personaRes = await api.post('/usuarios/persona/', {
-      ci: values.ci || null,
-      nombre: values.nombre,
-      email: values.email || null,
-      telefono: values.telefono || null
-    });
-    const personaId = personaRes.data.id;
+    try {
+      // 1. Crear persona
+      const personaData = {
+        nombre: values.nombre
+      };
+      
+      // Solo agregar campos si tienen valor
+      if (values.ci && values.ci.trim()) {
+        personaData.ci = values.ci.trim();
+      }
+      if (values.email && values.email.trim()) {
+        personaData.email = values.email.trim();
+      }
+      if (values.telefono && values.telefono.trim()) {
+        personaData.telefono = values.telefono.trim();
+      }
+      
+      const personaRes = await api.post('/usuarios/persona/', personaData);
+      const personaId = personaRes.data.id;
 
-    // 2. Crear residente
-    const residenteData = {
-      persona: personaId,
-      usuario: null,
-      usuario_asociado: values.usuario_asociado || null
-    };
-    
-    const residenteRes = await api.post('/usuarios/residentes/', residenteData);
-    const residenteId = residenteRes.data.id;
+      // 2. Crear residente
+      const residenteData = {
+        persona: personaId,
+        usuario: null,
+        usuario_asociado: values.usuario_asociado || null
+      };
+      
+      const residenteRes = await api.post('/usuarios/residentes/', residenteData);
+      const residenteId = residenteRes.data.id;
 
-    // 3. Crear relación con unidad si se especificó
-    if (values.unidad) {
-      await createResidenteUnidadRelation(residenteId, values.unidad, values.tipo);
+      // 3. Crear relación con unidad si se especificó
+      if (values.unidad) {
+        await createResidenteUnidadRelation(residenteId, values.unidad, values.tipo);
+      }
+
+      message.success('Residente creado exitosamente');
+    } catch (error) {
+      console.error('Error al crear residente:', error);
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.error || 
+                          error.response?.data?.message ||
+                          error.message;
+      message.error('Error al crear residente: ' + errorMessage);
     }
-
-    message.success('Residente creado exitosamente');
   };
 
   const createResidenteUnidadRelation = async (residenteId, unidadId, tipo) => {
@@ -240,23 +260,28 @@ const ListaResidentes = () => {
   };
 
   const updatePersona = async (personaId, values) => {
+    const personaData = {
+      nombre: values.nombre
+    };
+    
+    // Solo agregar campos si tienen valor
+    if (values.ci && values.ci.trim()) {
+      personaData.ci = values.ci.trim();
+    }
+    if (values.email && values.email.trim()) {
+      personaData.email = values.email.trim();
+    }
+    if (values.telefono && values.telefono.trim()) {
+      personaData.telefono = values.telefono.trim();
+    }
+    
     if (!personaId) {
       // Crear nueva persona
-      const personaRes = await api.post('/usuarios/persona/', {
-        ci: values.ci || null,
-        nombre: values.nombre,
-        email: values.email || null,
-        telefono: values.telefono || null
-      });
+      const personaRes = await api.post('/usuarios/persona/', personaData);
       return personaRes.data.id;
     } else {
       // Actualizar persona existente
-      await api.put(`/usuarios/persona/${personaId}/`, {
-        ci: values.ci || null,
-        nombre: values.nombre,
-        email: values.email || null,
-        telefono: values.telefono || null
-      });
+      await api.put(`/usuarios/persona/${personaId}/`, personaData);
       return personaId;
     }
   };
@@ -531,6 +556,7 @@ const ListaResidentes = () => {
             style={{ width: 200 }}
             allowClear
           >
+            <Option value="propietario">Responsable de Unidad</Option>
             <Option value="residente">Residente</Option>
             <Option value="inquilino">Inquilino</Option>
           </Select>
@@ -605,6 +631,7 @@ const ListaResidentes = () => {
             rules={[{ required: true, message: 'Por favor seleccione el tipo' }]}
           >
             <Select>
+              <Option value="propietario">Responsable de Unidad</Option>
               <Option value="residente">Residente</Option>
               <Option value="inquilino">Inquilino</Option>
             </Select>

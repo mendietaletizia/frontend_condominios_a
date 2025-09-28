@@ -1,10 +1,17 @@
 .dashboard-page {
-  padding: 24px 20px;
+  padding: 20px;
   width: 100%;
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f5f5f5;
   min-height: 100vh;
+}
+
+/* Laptop specific optimizations */
+@media (max-width: 1366px) and (min-width: 1024px) {
+  .dashboard-page {
+    padding: 16px;
+  }
 }
 
 /* Header global ahora lo maneja Layout */
@@ -224,69 +231,29 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-  .dashboard-content {
-    padding: 24px;
-  }
-
-  .dashboard-sections {
-    gap: 20px;
-  }
-
-  .dashboard-section {
-    padding: 24px;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 16px;
-  }
-
-  .stat-card {
-    padding: 20px;
-    gap: 14px;
-  }
-
-  .stat-icon {
-    font-size: 40px;
-  }
-
-  .stat-value {
-    font-size: 24px;
-  }
-}
-
-@media (max-width: 768px) {
   .dashboard-page {
     padding: 16px;
   }
-
+  
   .dashboard-content {
-    padding: 16px;
+    padding: 20px;
   }
 
   .dashboard-sections {
-    grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 18px;
   }
 
   .dashboard-section {
     padding: 20px;
   }
 
-  .dashboard-section h3 {
-    font-size: 20px;
-    margin-bottom: 20px;
-  }
-
   .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
   }
 
   .stat-card {
-    padding: 16px;
-    flex-direction: column;
-    text-align: center;
+    padding: 18px;
     gap: 12px;
   }
 
@@ -295,7 +262,51 @@
   }
 
   .stat-value {
-    font-size: 20px;
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-page {
+    padding: 12px;
+  }
+
+  .dashboard-content {
+    padding: 12px;
+  }
+
+  .dashboard-sections {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .dashboard-section {
+    padding: 16px;
+  }
+
+  .dashboard-section h3 {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 14px;
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .stat-icon {
+    font-size: 32px;
+  }
+
+  .stat-value {
+    font-size: 18px;
   }
 
   .morosidad-info {
@@ -308,54 +319,54 @@
 
   .dashboard-employee,
   .dashboard-security {
-    padding: 32px 24px;
+    padding: 24px 16px;
   }
 
   .dashboard-employee h2,
   .dashboard-security h2 {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .dashboard-employee p,
   .dashboard-security p {
-    font-size: 16px;
+    font-size: 15px;
   }
 }
 
 @media (max-width: 480px) {
   .dashboard-page {
-    padding: 8px;
+    padding: 6px;
   }
 
   .dashboard-content {
-    padding: 12px;
+    padding: 8px;
   }
 
   .dashboard-section {
-    padding: 16px;
-  }
-
-  .stat-card {
     padding: 12px;
   }
 
+  .stat-card {
+    padding: 10px;
+  }
+
   .stat-value {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .morosidad-card {
-    padding: 16px;
+    padding: 12px;
     flex-direction: column;
     text-align: center;
-    gap: 12px;
+    gap: 8px;
   }
 
   .info-card {
-    padding: 16px;
+    padding: 12px;
   }
 
   .dashboard-employee,
   .dashboard-security {
-    padding: 24px 16px;
+    padding: 20px 12px;
   }
 }
