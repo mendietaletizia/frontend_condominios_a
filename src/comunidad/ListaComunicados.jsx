@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Card, Table, Button, Space, Modal, Form, Input, DatePicker, Select, message, Tag, Checkbox, Divider, Popconfirm } from 'antd';
 import dayjs from 'dayjs';
 import { comunidadAPI } from '../api/comunidad';
-import { NotificationOutlined, SendOutlined, PlusOutlined, UserOutlined, TeamOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { NotificationOutlined, SendOutlined, PlusOutlined, UserOutlined, TeamOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 
 const ListaComunicados = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+  const [viewingComunicado, setViewingComunicado] = useState(null);
   const [form] = Form.useForm();
   const [editingComunicado, setEditingComunicado] = useState(null);
   
@@ -42,6 +44,11 @@ const ListaComunicados = () => {
     });
     setEditingComunicado(null);
     setIsModalVisible(true);
+  };
+
+  const showViewModal = (comunicado) => {
+    setViewingComunicado(comunicado);
+    setIsViewModalVisible(true);
   };
 
   const showEditModal = (comunicado) => {
@@ -153,6 +160,11 @@ const ListaComunicados = () => {
     });
   };
 
+  const handleCancelViewModal = () => {
+    setIsViewModalVisible(false);
+    setViewingComunicado(null);
+  };
+
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
     { title: 'Título', dataIndex: 'titulo', key: 'titulo', width: 200 },
@@ -179,9 +191,17 @@ const ListaComunicados = () => {
     {
       title: 'Acciones',
       key: 'acciones',
-      width: 120,
+      width: 180,
       render: (_, record) => (
         <Space>
+          <Button 
+            type="default" 
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => showViewModal(record)}
+          >
+            Ver
+          </Button>
           <Button 
             type="primary" 
             size="small"
@@ -276,6 +296,84 @@ const ListaComunicados = () => {
             </Space>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Modal para ver el contenido del comunicado */}
+      <Modal 
+        title="Ver Comunicado" 
+        open={isViewModalVisible} 
+        onCancel={handleCancelViewModal} 
+        footer={[
+          <Button key="close" onClick={handleCancelViewModal}>
+            Cerrar
+          </Button>
+        ]} 
+        width={800}
+      >
+        {viewingComunicado && (
+          <div style={{ padding: '16px 0' }}>
+            <div style={{ marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, color: '#1890ff' }}>{viewingComunicado.titulo}</h3>
+              <div style={{ marginTop: '8px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <Tag color="blue">{viewingComunicado.tipo}</Tag>
+                <Tag color="green">
+                  {dayjs(viewingComunicado.fecha).format('DD/MM/YYYY HH:mm')}
+                </Tag>
+                {viewingComunicado.prioridad && (
+                  <Tag color={
+                    viewingComunicado.prioridad === 'urgente' ? 'red' :
+                    viewingComunicado.prioridad === 'alta' ? 'orange' :
+                    viewingComunicado.prioridad === 'media' ? 'blue' : 'green'
+                  }>
+                    Prioridad: {viewingComunicado.prioridad}
+                  </Tag>
+                )}
+              </div>
+            </div>
+
+            <Divider />
+
+            <div style={{ marginBottom: '16px' }}>
+              <h4 style={{ marginBottom: '8px' }}>Destinatarios:</h4>
+              <div>
+                {viewingComunicado.destinatarios && Object.entries(viewingComunicado.destinatarios)
+                  .filter(([_, selected]) => selected)
+                  .map(([rol, _]) => (
+                    <Tag key={rol} color="green" style={{ margin: '2px' }}>
+                      {rol === 'residentes' ? '👥 Residentes' : 
+                       rol === 'empleados' ? '👷 Empleados' : 
+                       rol === 'seguridad' ? '🛡️ Seguridad' : rol}
+                    </Tag>
+                  ))}
+              </div>
+            </div>
+
+            <Divider />
+
+            <div>
+              <h4 style={{ marginBottom: '8px' }}>Contenido:</h4>
+              <div 
+                style={{ 
+                  padding: '16px', 
+                  backgroundColor: '#f5f5f5', 
+                  borderRadius: '6px',
+                  border: '1px solid #d9d9d9',
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: '1.6',
+                  fontSize: '14px'
+                }}
+              >
+                {viewingComunicado.contenido}
+              </div>
+            </div>
+
+            {viewingComunicado.fecha_creacion && (
+              <div style={{ marginTop: '16px', fontSize: '12px', color: '#666' }}>
+                <strong>Creado:</strong> {dayjs(viewingComunicado.fecha_creacion).format('DD/MM/YYYY HH:mm')}
+              </div>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   );

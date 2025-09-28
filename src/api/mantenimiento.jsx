@@ -102,6 +102,36 @@ export const mantenimientoAPI = {
     }
   },
 
+  // Confirmar una reserva
+  async confirmarReserva(id) {
+    try {
+      const response = await api.post(`/mantenimiento/reservas/${id}/confirmar/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Cancelar una reserva
+  async cancelarReserva(id) {
+    try {
+      const response = await api.post(`/mantenimiento/reservas/${id}/cancelar/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Verificar disponibilidad
+  async verificarDisponibilidad(areaId, fecha, horaInicio, horaFin) {
+    try {
+      const response = await api.get(`/mantenimiento/reservas/disponibilidad/?area_id=${areaId}&fecha=${fecha}&hora_inicio=${horaInicio}&hora_fin=${horaFin}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Obtener todas las bitácoras de mantenimiento
   async getBitacorasMantenimiento() {
     try {

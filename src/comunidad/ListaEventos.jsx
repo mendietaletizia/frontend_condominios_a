@@ -96,8 +96,49 @@ const ListaEventos = () => {
     { title: 'ID', dataIndex: 'id', key: 'id', width: 60, responsive: ['lg'] },
     { title: 'Título', dataIndex: 'titulo', key: 'titulo', width: 200, render: (t) => <strong style={{fontSize: '12px'}}>{t}</strong> },
     { title: 'Descripción', dataIndex: 'descripcion', key: 'descripcion', width: 300, responsive: ['md'] },
+    { 
+      title: 'Tipo', 
+      key: 'tipo', 
+      width: 120,
+      render: (_, record) => {
+        const esReserva = record.titulo?.includes('Reserva:');
+        return (
+          <Tag color={esReserva ? 'green' : 'blue'}>
+            {esReserva ? 'Reserva' : 'Evento'}
+          </Tag>
+        );
+      }
+    },
+    { 
+      title: 'Residente', 
+      key: 'residente', 
+      width: 150,
+      render: (_, record) => {
+        const esReserva = record.titulo?.includes('Reserva:');
+        if (esReserva && record.descripcion) {
+          // Extraer nombre del residente de la descripción
+          const match = record.descripcion.match(/por (.+?) \(CI:/);
+          if (match) {
+            return <Tag color="orange">{match[1]}</Tag>;
+          }
+        }
+        return '-';
+      }
+    },
     { title: 'Fecha', dataIndex: 'fecha', key: 'fecha', width: 160, render: (f) => dayjs(f).format('DD/MM/YYYY HH:mm') },
-    { title: 'Áreas', key: 'areas', width: 220, render: (_, r) => (r.areas_info || []).map(a => a.nombre).join(', ') || '-' },
+    { 
+      title: 'Áreas', 
+      key: 'areas', 
+      width: 150, 
+      render: (_, r) => {
+        if (!r.areas_info || r.areas_info.length === 0) return '-';
+        return r.areas_info.map(area => (
+          <Tag key={area.id} color="blue" style={{ margin: '2px' }}>
+            {area.nombre}
+          </Tag>
+        ));
+      }
+    },
     { title: 'Estado', dataIndex: 'estado', key: 'estado', width: 90, align: 'center', render: (s) => <Tag color={s ? 'green' : 'default'}>{s ? 'ACTIVO' : 'INACTIVO'}</Tag> },
     { title: 'Acciones', key: 'acciones', width: 160, align: 'center', render: (_, r) => (
       <Space size="small" wrap>

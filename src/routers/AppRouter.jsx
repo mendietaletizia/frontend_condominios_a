@@ -5,6 +5,9 @@ import IniciarSesion from '../autenticacion/IniciarSesion';
 import Dashboard from '../components/Dashboard';
 import NotImplemented from '../components/NotImplemented';
 import ListaAreasComunes from '../mantenimiento/ListaAreasComunes';
+import ListaReservas from '../mantenimiento/ListaReservas';
+import ListaReservasResidente from '../mantenimiento/ListaReservasResidente';
+import ListaAreasDisponibles from '../mantenimiento/ListaAreasDisponibles';
 import ListaEventos from '../comunidad/ListaEventos';
 import ListaComunicados from '../comunidad/ListaComunicados';
 
@@ -169,6 +172,30 @@ const AppRouter = () => {
             element={
               <ProtectedRoute requiredRoles={['administrador']}>
                 <ListaAreasComunes />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="reservas" 
+            element={
+              <ProtectedRoute requiredRoles={['administrador']}>
+                <ListaReservas />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="mis-reservas" 
+            element={
+              <ProtectedRoute requiredRoles={['residente']}>
+                <ListaReservasResidente />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="areas-disponibles" 
+            element={
+              <ProtectedRoute requiredRoles={['residente']}>
+                <ListaAreasDisponibles />
               </ProtectedRoute>
             } 
           />
