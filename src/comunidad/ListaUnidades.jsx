@@ -498,7 +498,7 @@ const ListaUnidades = () => {
     <div className="dashboard-unidades">
       <div className="dashboard-header">
         <h1>
-          <HomeOutlined /> Gestión de Unidades Habitacionales
+          <HomeOutlined /> Gestión de Unidades
         </h1>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
           Nueva Unidad

@@ -42,8 +42,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
           { id: 'cu5-mascotas', label: 'CU5 - Gestión de Mascotas', path: '/mascotas', implemented: true, roles: ['administrador', 'residente'] },
           { id: 'cu11', label: 'CU11 - Gestión de Eventos', path: '/eventos', implemented: true, roles: ['administrador', 'residente'] },
           { id: 'cu12', label: 'CU12 - Gestión de Comunicados', path: '/reclamos', implemented: true, roles: ['administrador', 'residente'] },
-          { id: 'cu17', label: 'CU17 - Gestión de Áreas Comunes', path: '/areas-comunes', implemented: true, roles: ['administrador'] },
-          { id: 'cu17-reservas', label: 'CU17 - Gestión de Reservas', path: '/reservas', implemented: true, roles: ['administrador'] }
+          { id: 'cu17', label: 'CU17 - Gestión de Áreas Comunes', path: '/areas-comunes', implemented: true, roles: ['administrador'] }
         ]
       },
       {

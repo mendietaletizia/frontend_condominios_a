@@ -60,3 +60,6 @@ button:focus-visible {
 }
 
 /* Eliminar reglas de tema oscuro condicional */
+
+/* Importar fix para animaciones recursivas */
+@import './styles/animations-fix.css';

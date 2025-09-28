@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Tooltip, Badge, Statistic, Row, Col, DatePicker, InputNumber, Divider, Radio } from 'antd';
+import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Tooltip, Statistic, Row, Col, DatePicker, InputNumber, Divider, Radio } from 'antd';
 import { 
   PlusOutlined, EditOutlined, DeleteOutlined, 
   DollarOutlined, CalendarOutlined, UserOutlined, HomeOutlined,
@@ -10,20 +10,19 @@ import {
 import { finanzasAPI } from '../api/finanzas';
 import api from '../api/config';
 import dayjs from 'dayjs';
-import './GestionCuotas.css';
+import './GestionCuotasFixed.css';
 
 const { Option } = Select;
 const { TextArea } = Input;
 
-const GestionCuotas = () => {
+const GestionCuotasFixed = () => {
   const { canAccess } = useAuth();
   
   const [cuotasMensuales, setCuotasMensuales] = useState([]);
-  const [cuotasUnidad, setCuotasUnidad] = useState([]);
   const [expensasMensuales, setExpensasMensuales] = useState([]);
+  const [cuotasUnidad, setCuotasUnidad] = useState([]);
   const [expensasUnidad, setExpensasUnidad] = useState([]);
   const [unidades, setUnidades] = useState([]);
-  const [residentes, setResidentes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
@@ -37,131 +36,101 @@ const GestionCuotas = () => {
   const [enviarATodos, setEnviarATodos] = useState(true);
   
   const [form] = Form.useForm();
+  const [expensaForm] = Form.useForm();
   const [pagoForm] = Form.useForm();
 
   const [filtroMes, setFiltroMes] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
   const [filtroUnidad, setFiltroUnidad] = useState('');
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
-  const loadData = useCallback(async () => {
+  const loadData = async () => {
+    // Evitar múltiples llamadas simultáneas
+    if (isLoadingData) {
+      return;
+    }
+    
     try {
+      setIsLoadingData(true);
       setLoading(true);
       setError('');
       
-      try {
-        const cuotasMensualesData = await finanzasAPI.getCuotasMensuales();
-        setCuotasMensuales(cuotasMensualesData.results || cuotasMensualesData || []);
-      } catch (error) {
-        console.error('Error cargando cuotas mensuales:', error);
-        setCuotasMensuales([]);
-      }
+      // Hacer solo 3 llamadas API en paralelo para evitar rate limiting
+      const [cuotasMensualesData, cuotasUnidadData, unidadesRes] = await Promise.all([
+        finanzasAPI.getCuotasMensuales(),
+        finanzasAPI.getCuotasUnidad(),
+        api.get('/comunidad/unidades/')
+      ]);
 
-      try {
-        const cuotasUnidadData = await finanzasAPI.getCuotasUnidad();
-        setCuotasUnidad(cuotasUnidadData.results || cuotasUnidadData || []);
-      } catch (error) {
-        console.error('Error cargando cuotas por unidad:', error);
-        setCuotasUnidad([]);
-      }
+      // Usar los mismos datos para cuotas y expensas (diferentes propósitos)
+      const cuotasMensuales = cuotasMensualesData.results || cuotasMensualesData || [];
+      const cuotasUnidad = cuotasUnidadData.results || cuotasUnidadData || [];
+      const unidades = unidadesRes.data.results || unidadesRes.data || [];
 
-      // Las expensas se manejan como cuotas en este sistema
-      // Usar cuotas mensuales para expensas mensuales
-      try {
-        const expensasMensualesData = await finanzasAPI.getCuotasMensuales();
-        setExpensasMensuales(expensasMensualesData.results || expensasMensualesData || []);
-      } catch (error) {
-        console.error('Error cargando expensas mensuales:', error);
-        setExpensasMensuales([]);
-      }
-
-      // Usar cuotas por unidad para expensas por unidad
-      try {
-        const expensasUnidadData = await finanzasAPI.getCuotasUnidad();
-        setExpensasUnidad(expensasUnidadData.results || expensasUnidadData || []);
-      } catch (error) {
-        console.error('Error cargando expensas por unidad:', error);
-        setExpensasUnidad([]);
-      }
-
-      try {
-        const unidadesRes = await api.get('/comunidad/unidades/');
-        setUnidades(unidadesRes.data.results || unidadesRes.data || []);
-      } catch (error) {
-        console.error('Error cargando unidades:', error);
-        setUnidades([]);
-      }
-
-      try {
-        const residentesRes = await api.get('/usuarios/residentes/');
-        setResidentes(residentesRes.data.results || residentesRes.data || []);
-      } catch (error) {
-        console.error('Error cargando residentes:', error);
-        setResidentes([]);
-      }
+      setCuotasMensuales(cuotasMensuales);
+      setExpensasMensuales(cuotasMensuales); // Mismos datos, diferente propósito
+      setCuotasUnidad(cuotasUnidad);
+      setExpensasUnidad(cuotasUnidad); // Mismos datos, diferente propósito
+      setUnidades(unidades);
 
     } catch (error) {
-      console.error('Error general al cargar datos:', error);
-      setError('Error al cargar datos: ' + (error.response?.data?.detail || error.message));
+      console.error('Error cargando datos:', error);
+      
+      // Manejo específico para errores 429 (rate limiting)
+      if (error.response?.status === 429) {
+        const retryAfter = error.response?.data?.detail?.match(/(\d+)/)?.[1];
+        const waitTime = retryAfter ? Math.min(parseInt(retryAfter), 300) : 60; // Máximo 5 minutos
+        setError(`Demasiadas solicitudes. El servidor está temporalmente sobrecargado. Intenta nuevamente en ${waitTime} segundos.`);
+        
+        // Auto-retry después del tiempo de espera
+        setTimeout(() => {
+          setIsLoadingData(false);
+          loadData();
+        }, waitTime * 1000);
+      } else {
+        setError('Error al cargar datos: ' + (error.response?.data?.detail || error.message));
+      }
     } finally {
       setLoading(false);
+      setIsLoadingData(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
     loadData();
-  }, [loadData]);
+  }, []);
 
-  const estadisticas = useMemo(() => {
-    const totalCuotasMensuales = cuotasMensuales.length;
-    const totalCuotasUnidad = cuotasUnidad.length;
-    const totalExpensasMensuales = expensasMensuales.length;
-    const totalExpensasUnidad = expensasUnidad.length;
-    
-    const allPagos = [...cuotasUnidad, ...expensasUnidad];
-    const totalPendientes = allPagos.filter(c => c.estado === 'pendiente').length;
-    const totalPagadas = allPagos.filter(c => c.estado === 'pagada').length;
-    const totalVencidas = allPagos.filter(c => c.estado === 'vencida').length;
-    const totalParciales = allPagos.filter(c => c.estado === 'parcial').length;
-    
-    return {
-      totalCuotasMensuales,
-      totalCuotasUnidad,
-      totalExpensasMensuales,
-      totalExpensasUnidad,
-      totalPendientes,
-      totalPagadas,
-      totalVencidas,
-      totalParciales,
-      montoTotal: allPagos.reduce((sum, c) => sum + parseFloat(c.monto || 0), 0),
-      montoCobrado: allPagos.reduce((sum, c) => sum + parseFloat(c.monto_pagado || 0), 0),
-      montoPendiente: allPagos.reduce((sum, c) => sum + (parseFloat(c.monto || 0) - parseFloat(c.monto_pagado || 0)), 0)
-    };
-  }, [cuotasMensuales, cuotasUnidad, expensasMensuales, expensasUnidad]);
+  // Estadísticas simplificadas
+  const estadisticas = {
+    totalCuotasMensuales: cuotasMensuales.length,
+    totalExpensasMensuales: expensasMensuales.length,
+    totalCuotasUnidad: cuotasUnidad.length,
+    totalExpensasUnidad: expensasUnidad.length,
+    totalPendientes: [...cuotasUnidad, ...expensasUnidad].filter(c => c.estado === 'pendiente').length,
+    totalPagadas: [...cuotasUnidad, ...expensasUnidad].filter(c => c.estado === 'pagada').length,
+    totalVencidas: [...cuotasUnidad, ...expensasUnidad].filter(c => c.estado === 'vencida').length,
+    totalParciales: [...cuotasUnidad, ...expensasUnidad].filter(c => c.estado === 'parcial').length,
+    montoTotal: [...cuotasUnidad, ...expensasUnidad].reduce((sum, c) => sum + parseFloat(c.monto || 0), 0),
+    montoCobrado: [...cuotasUnidad, ...expensasUnidad].reduce((sum, c) => sum + parseFloat(c.monto_pagado || 0), 0),
+    montoPendiente: [...cuotasUnidad, ...expensasUnidad].reduce((sum, c) => sum + (parseFloat(c.monto || 0) - parseFloat(c.monto_pagado || 0)), 0)
+  };
 
-  // Contador de cuotas por mes optimizado
-  const cuotasPorMes = useMemo(() => {
-    const count = {};
-    cuotasUnidad.forEach(cuota => {
-      const mes = cuota.cuota_mensual;
-      count[mes] = (count[mes] || 0) + 1;
-    });
-    return count;
-  }, [cuotasUnidad]);
+  // Contador de cuotas por mes
+  const cuotasPorMes = {};
+  cuotasUnidad.forEach(cuota => {
+    const mes = cuota.cuota_mensual;
+    cuotasPorMes[mes] = (cuotasPorMes[mes] || 0) + 1;
+  });
 
-  const mesesDisponibles = useMemo(() => {
-    return Array.from(new Set(cuotasUnidad.map(p => p.mes_año).filter(mes => mes)));
-  }, [cuotasUnidad]);
+  const mesesDisponibles = Array.from(new Set(cuotasUnidad.map(p => p.mes_año).filter(mes => mes)));
 
-  // Handlers - Declarados antes de su uso en useMemo
-  const handleRegistrarPago = useCallback((cuotaUnidad) => {
+  const handleRegistrarPago = (cuotaUnidad) => {
     setSelectedCuotaUnidad(cuotaUnidad);
     pagoForm.resetFields();
     setIsPagoModalVisible(true);
-  }, [pagoForm]);
+  };
 
-  const handleEditarCuota = useCallback((cuotaUnidad) => {
-    console.log('Editando cuota:', cuotaUnidad);
-    
+  const handleEditarCuota = (cuotaUnidad) => {
     setEditingCuota(cuotaUnidad);
     
     let fechaFormateada = null;
@@ -172,7 +141,6 @@ const GestionCuotas = () => {
           fechaFormateada = null;
         }
       } catch (error) {
-        console.warn('Error al formatear fecha:', error);
         fechaFormateada = null;
       }
     }
@@ -183,14 +151,11 @@ const GestionCuotas = () => {
       observaciones: cuotaUnidad.observaciones || ''
     };
     
-    console.log('Datos del formulario:', formData);
-    
     form.setFieldsValue(formData);
     setIsCuotaModalVisible(true);
-  }, [form]);
+  };
 
-
-  const handleEliminarCuota = useCallback((cuotaUnidad) => {
+  const handleEliminarCuota = (cuotaUnidad) => {
     Modal.confirm({
       title: '¿Está seguro de eliminar esta cuota?',
       content: (
@@ -218,81 +183,9 @@ const GestionCuotas = () => {
         }
       },
     });
-  }, [loadData]);
+  };
 
-  const handleVerCuotas = useCallback((mesAño) => {
-    setFiltroMes(mesAño);
-  }, []);
-
-  const handleEliminarExpensaMensual = useCallback((expensaMensual) => {
-    Modal.confirm({
-      title: '¿Está seguro de eliminar esta expensa mensual?',
-      content: (
-        <div>
-          <p><strong>Mes/Año:</strong> {expensaMensual.mes_año}</p>
-          <p><strong>Monto Total:</strong> Bs. {parseFloat(expensaMensual.monto_total).toLocaleString()}</p>
-          <p><strong>Estado:</strong> {expensaMensual.estado}</p>
-          <br />
-          <p style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
-            ⚠️ Esta acción eliminará TODAS las expensas individuales asociadas.
-          </p>
-          <p style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
-            ⚠️ Esta acción no se puede deshacer.
-          </p>
-        </div>
-      ),
-      okText: 'Sí, eliminar todo',
-      okType: 'danger',
-      cancelText: 'Cancelar',
-      onOk: async () => {
-        try {
-          await api.delete(`/finanzas/cuotas-mensuales/${expensaMensual.id}/eliminar_cuota_mensual/`);
-          message.success('Expensa mensual eliminada exitosamente');
-          loadData();
-        } catch (error) {
-          message.error('Error al eliminar expensa mensual: ' + (error.response?.data?.detail || error.message));
-        }
-      },
-    });
-  }, [loadData]);
-
-  const handleEditarExpensa = useCallback((expensa) => {
-    console.log('Editando expensa:', expensa);
-  }, []);
-
-  const handleEliminarExpensa = useCallback((expensa) => {
-    Modal.confirm({
-      title: '¿Está seguro de eliminar esta expensa?',
-      content: (
-        <div>
-          <p><strong>Unidad:</strong> {expensa.unidad_numero}</p>
-          <p><strong>Mes/Año:</strong> {expensa.cuota_mensual}</p>
-          <p><strong>Monto:</strong> Bs. {parseFloat(expensa.monto).toLocaleString()}</p>
-          <p><strong>Estado:</strong> {expensa.estado}</p>
-          <br />
-          <p style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
-            ⚠️ Esta acción no se puede deshacer.
-          </p>
-        </div>
-      ),
-      okText: 'Sí, eliminar',
-      okType: 'danger',
-      cancelText: 'Cancelar',
-      onOk: async () => {
-        try {
-          await api.delete(`/finanzas/cuotas-unidad/${expensa.id}/eliminar_cuota/`);
-          message.success('Expensa eliminada exitosamente');
-          loadData();
-        } catch (error) {
-          message.error('Error al eliminar expensa: ' + (error.response?.data?.detail || error.message));
-        }
-      },
-    });
-  }, [loadData]);
-
-
-
-  const handleEliminarCuotaMensual = useCallback((cuotaMensual) => {
+  const handleEliminarCuotaMensual = (cuotaMensual) => {
     const cuotasCount = cuotasPorMes[cuotaMensual.mes_año] || 0;
     
     Modal.confirm({
@@ -317,7 +210,7 @@ const GestionCuotas = () => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          await api.delete(`/finanzas/cuotas-mensuales/${cuotaMensual.id}/eliminar_cuota_mensual/`);
+          await finanzasAPI.deleteCuotaMensual(cuotaMensual.id);
           message.success(`Cuota mensual y ${cuotasCount} cuotas individuales eliminadas exitosamente`);
           loadData();
         } catch (error) {
@@ -325,16 +218,15 @@ const GestionCuotas = () => {
         }
       },
     });
-  }, [cuotasPorMes, loadData]);
+  };
 
-  // Columnas optimizadas de la tabla de cuotas
-  const cuotasColumns = useMemo(() => [
+  // Columnas de la tabla de cuotas
+  const cuotasColumns = [
     {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
       width: 60,
-      responsive: ['lg'],
     },
     {
       title: 'Mes/Año',
@@ -458,12 +350,10 @@ const GestionCuotas = () => {
         </Space>
       ),
     },
-  ], [handleRegistrarPago, handleEditarCuota, handleEliminarCuota]);
+  ];
 
-
-
-  // Columnas de cuotas mensuales optimizadas (mantener para compatibilidad)
-  const cuotasMensualesColumns = useMemo(() => [
+  // Columnas de cuotas mensuales
+  const cuotasMensualesColumns = [
     {
       title: 'Mes/Año',
       dataIndex: 'mes_año',
@@ -528,7 +418,7 @@ const GestionCuotas = () => {
     {
       title: 'Acciones',
       key: 'acciones',
-      width: 200,
+      width: 250,
       render: (_, record) => (
         <Space>
           <Tooltip title="Ver Cuotas Individuales">
@@ -536,9 +426,20 @@ const GestionCuotas = () => {
               type="link"
               size="small"
               icon={<EyeOutlined />}
-              onClick={() => handleVerCuotas(record.mes_año)}
+              onClick={() => setFiltroMes(record.mes_año)}
             >
               Ver Cuotas
+            </Button>
+          </Tooltip>
+          <Tooltip title="Editar Cuota Mensual">
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => handleEditarCuotaMensual(record)}
+              disabled={record.estado === 'cerrada'}
+            >
+              Editar
             </Button>
           </Tooltip>
           <Tooltip title="Eliminar Cuota Mensual">
@@ -556,291 +457,145 @@ const GestionCuotas = () => {
         </Space>
       ),
     },
-  ], [cuotasPorMes, handleVerCuotas, handleEliminarCuotaMensual]);
+  ];
 
-  const expensasMensualesColumns = useMemo(() => [
-    {
-      title: 'Descripción',
-      dataIndex: 'descripcion',
-      key: 'descripcion',
-      width: 150,
-      render: (descripcion) => (
-        <Space>
-          <HomeOutlined />
-          <span style={{ fontWeight: 'bold' }}>{descripcion || 'Cuota Mensual'}</span>
-        </Space>
-      ),
-    },
-    {
-      title: 'Mes/Año',
-      dataIndex: 'mes_año',
-      key: 'mes_año',
-      width: 120,
-      render: (mes) => (
-        <Space>
-          <CalendarOutlined />
-          <span style={{ fontWeight: 'bold' }}>{mes}</span>
-        </Space>
-      ),
-    },
-    {
-      title: 'Monto Total',
-      dataIndex: 'monto_total',
-      key: 'monto_total',
-      width: 150,
-      render: (monto) => (
-        <span style={{ fontWeight: 'bold', color: '#1890ff' }}>
-          Bs. {parseFloat(monto || 0).toLocaleString()}
-        </span>
-      ),
-    },
-    {
-      title: 'Estado',
-      dataIndex: 'estado',
-      key: 'estado',
-      width: 120,
-      render: (estado) => {
-        const colors = {
-          'borrador': 'default',
-          'activa': 'blue',
-          'cerrada': 'green'
-        };
-        return (
-          <Tag color={colors[estado]}>
-            {estado.toUpperCase()}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: 'Fecha Límite',
-      dataIndex: 'fecha_limite',
-      key: 'fecha_limite',
-      width: 120,
-      render: (fecha) => new Date(fecha).toLocaleDateString(),
-    },
-    {
-      title: 'Expensas Generadas',
-      key: 'expensas_count',
-      width: 150,
-      render: (_, record) => {
-        const expensasCount = expensasUnidad.filter(e => e.cuota_mensual === record.mes_año).length;
-        return (
-          <Tag color="blue">
-            {expensasCount} expensas
-          </Tag>
-        );
-      },
-    },
-    {
-      title: 'Acciones',
-      key: 'acciones',
-      width: 200,
-      render: (_, record) => (
-        <Space>
-          <Tooltip title="Ver Expensas Individuales">
-            <Button
-              type="link"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => setFiltroMes(record.mes_año)}
-            >
-              Ver Expensas
-            </Button>
-          </Tooltip>
-          <Tooltip title="Eliminar Expensa Mensual">
-            <Button
-              type="link"
-              size="small"
-              icon={<DeleteOutlined />}
-              onClick={() => handleEliminarExpensaMensual(record)}
-              disabled={record.estado === 'cerrada'}
-              danger
-            >
-              Eliminar
-            </Button>
-          </Tooltip>
-        </Space>
-      ),
-    },
-  ], [expensasUnidad]);
-
-  const expensasUnidadColumns = useMemo(() => [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      width: 60,
-      responsive: ['lg'],
-    },
-    {
-      title: 'Mes/Año',
-      dataIndex: 'cuota_mensual',
-      key: 'mes_año',
-      width: 100,
-      render: (mes) => (
-        <Space>
-          <CalendarOutlined />
-          <span>{mes}</span>
-        </Space>
-      ),
-    },
-    {
-      title: 'Unidad',
-      dataIndex: 'unidad_numero',
-      key: 'unidad',
-      width: 100,
-      render: (unidad) => (
-        <Space>
-          <HomeOutlined />
-          <span>{unidad}</span>
-        </Space>
-      ),
-    },
-    {
-      title: 'Residente',
-      dataIndex: 'residente_nombre',
-      key: 'residente',
-      width: 150,
-      render: (nombre) => (
-        <Space>
-          <UserOutlined />
-          <span>{nombre}</span>
-        </Space>
-      ),
-    },
-    {
-      title: 'm²',
-      dataIndex: 'metros_cuadrados',
-      key: 'metros_cuadrados',
-      width: 80,
-      render: (m2) => `${m2}m²`,
-    },
-    {
-      title: 'Monto Total',
-      dataIndex: 'monto',
-      key: 'monto',
-      width: 120,
-      render: (monto) => (
-        <span style={{ fontWeight: 'bold', color: '#1890ff' }}>
-          Bs. {parseFloat(monto || 0).toLocaleString()}
-        </span>
-      ),
-    },
-    {
-      title: 'Estado',
-      dataIndex: 'estado',
-      key: 'estado',
-      width: 120,
-      render: (estado) => {
-        const colors = {
-          'pagada': 'green',
-          'pendiente': 'blue',
-          'vencida': 'red',
-          'parcial': 'orange'
-        };
-        const icons = {
-          'pagada': <CheckCircleOutlined />,
-          'pendiente': <AlertOutlined />,
-          'vencida': <ExclamationCircleOutlined />,
-          'parcial': <AlertOutlined />
-        };
-        return (
-          <Tag color={colors[estado]} icon={icons[estado]}>
-            {estado.toUpperCase()}
-          </Tag>
-        );
-      },
-    },
-    {
-      title: 'Vencimiento',
-      dataIndex: 'fecha_limite',
-      key: 'fecha_limite',
-      width: 120,
-      render: (fecha) => new Date(fecha).toLocaleDateString(),
-    },
-    {
-      title: 'Acciones',
-      key: 'acciones',
-      width: 250,
-      fixed: 'right',
-      render: (_, record) => (
-        <Space>
-          <Tooltip title="Registrar Pago Manual">
-            <Button
-              type="primary"
-              size="small"
-              icon={<DollarOutlined />}
-              onClick={() => handleRegistrarPago(record)}
-              disabled={record.estado === 'pagada'}
-            >
-              Registrar Pago
-            </Button>
-          </Tooltip>
-          <Tooltip title="Editar Expensa">
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => handleEditarExpensa(record)}
-            >
-              Editar
-            </Button>
-          </Tooltip>
-          <Tooltip title="Eliminar Expensa">
-            <Button
-              type="link"
-              size="small"
-              icon={<DeleteOutlined />}
-              onClick={() => handleEliminarExpensa(record)}
-              disabled={record.estado === 'pagada' || record.estado === 'procesando' || record.monto_pagado > 0}
-              danger
-            >
-              Eliminar
-            </Button>
-          </Tooltip>
-        </Space>
-      ),
-    },
-  ], [handleRegistrarPago]);
-
-  // Handlers optimizados
-  const handleCrearCuota = useCallback(() => {
+  const handleCrearCuota = () => {
     setEditingCuota(null);
     setSelectedUnidades([]);
     setEnviarATodos(true);
     form.resetFields();
     setIsCuotaModalVisible(true);
-  }, [form]);
+  };
 
-  const handleCerrarModal = useCallback(() => {
+  const handleEditarCuotaMensual = (cuotaMensual) => {
+    setEditingCuota(cuotaMensual);
+    
+    let fechaFormateada = null;
+    if (cuotaMensual.fecha_limite) {
+      try {
+        fechaFormateada = dayjs(cuotaMensual.fecha_limite);
+        if (!fechaFormateada.isValid()) {
+          fechaFormateada = null;
+        }
+      } catch (error) {
+        fechaFormateada = null;
+      }
+    }
+    
+    const formData = {
+      descripcion: cuotaMensual.descripcion || '',
+      mes_año: cuotaMensual.mes_año,
+      monto_total: cuotaMensual.monto_total,
+      fecha_limite: fechaFormateada
+    };
+    
+    form.setFieldsValue(formData);
+    setIsCuotaModalVisible(true);
+  };
+
+  const handleCrearExpensa = () => {
+    setSelectedUnidades([]);
+    setEnviarATodos(true);
+    expensaForm.resetFields();
+    setIsExpensaModalVisible(true);
+  };
+
+  const handleEditarExpensaMensual = (expensaMensual) => {
+    setEditingCuota(expensaMensual);
+    
+    let fechaFormateada = null;
+    if (expensaMensual.fecha_limite) {
+      try {
+        fechaFormateada = dayjs(expensaMensual.fecha_limite);
+        if (!fechaFormateada.isValid()) {
+          fechaFormateada = null;
+        }
+      } catch (error) {
+        fechaFormateada = null;
+      }
+    }
+    
+    const formData = {
+      descripcion: expensaMensual.descripcion || '',
+      mes_año: expensaMensual.mes_año,
+      monto_total: expensaMensual.monto_total,
+      fecha_limite: fechaFormateada
+    };
+    
+    expensaForm.setFieldsValue(formData);
+    setIsExpensaModalVisible(true);
+  };
+
+  const handleEliminarExpensaMensual = (expensaMensual) => {
+    Modal.confirm({
+      title: '¿Está seguro de eliminar esta expensa mensual?',
+      content: (
+        <div>
+          <p><strong>Descripción:</strong> {expensaMensual.descripcion || 'Sin descripción'}</p>
+          <p><strong>Mes/Año:</strong> {expensaMensual.mes_año}</p>
+          <p><strong>Monto Total:</strong> Bs. {parseFloat(expensaMensual.monto_total).toLocaleString()}</p>
+          <p><strong>Estado:</strong> {expensaMensual.estado}</p>
+          <br />
+          <p style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
+            ⚠️ Esta acción eliminará TODAS las expensas individuales asociadas.
+          </p>
+          <p style={{ color: '#ff4d4f', fontWeight: 'bold' }}>
+            ⚠️ Esta acción no se puede deshacer.
+          </p>
+        </div>
+      ),
+      okText: 'Sí, eliminar todo',
+      okType: 'danger',
+      cancelText: 'Cancelar',
+      onOk: async () => {
+        try {
+          await api.delete(`/finanzas/cuotas-mensuales/${expensaMensual.id}/eliminar_cuota_mensual/`);
+          message.success('Expensa mensual eliminada exitosamente');
+          loadData();
+        } catch (error) {
+          message.error('Error al eliminar expensa mensual: ' + (error.response?.data?.detail || error.message));
+        }
+      },
+    });
+  };
+
+  const handleCerrarModal = () => {
     setEditingCuota(null);
     setSelectedUnidades([]);
     setEnviarATodos(true);
     form.resetFields();
     setIsCuotaModalVisible(false);
-  }, [form]);
+  };
 
-  const handleLimpiarFiltros = useCallback(() => {
+  const handleLimpiarFiltros = () => {
     setFiltroMes('');
     setFiltroEstado('');
     setFiltroUnidad('');
-  }, []);
-
-  const handleQuitarFiltroMes = useCallback(() => {
-    setFiltroMes('');
-  }, []);
+  };
 
   const handleSubmitCuota = async (values) => {
     try {
       if (editingCuota) {
-        const cuotaData = {
-          monto: values.monto,
-          fecha_limite: values.fecha_limite ? dayjs(values.fecha_limite).format('YYYY-MM-DD') : null,
-          observaciones: values.observaciones
-        };
-        await finanzasAPI.updateCuotaUnidad(editingCuota.id, cuotaData);
-        message.success('Cuota actualizada exitosamente');
+        // Verificar si es una cuota mensual o una cuota por unidad
+        if (editingCuota.mes_año) {
+          // Es una cuota mensual
+          const cuotaData = {
+            descripcion: values.descripcion,
+            monto_total: values.monto_total,
+            fecha_limite: values.fecha_limite ? dayjs(values.fecha_limite).format('YYYY-MM-DD') : null
+          };
+          await finanzasAPI.updateCuotaMensual(editingCuota.id, cuotaData);
+          message.success('Cuota mensual actualizada exitosamente');
+        } else {
+          // Es una cuota por unidad
+          const cuotaData = {
+            monto: values.monto,
+            fecha_limite: values.fecha_limite ? dayjs(values.fecha_limite).format('YYYY-MM-DD') : null,
+            observaciones: values.observaciones
+          };
+          await finanzasAPI.updateCuotaUnidad(editingCuota.id, cuotaData);
+          message.success('Cuota actualizada exitosamente');
+        }
       } else {
         const cuotaData = {
           ...values,
@@ -860,37 +615,59 @@ const GestionCuotas = () => {
       handleCerrarModal();
       loadData();
     } catch (error) {
+      console.error('Error al guardar cuota:', error);
       message.error('Error al guardar cuota: ' + (error.response?.data?.detail || error.message));
     }
   };
 
   const handleSubmitExpensa = async (values) => {
     try {
-      const expensaData = {
-        ...values,
-        fecha_limite: values.fecha_limite ? dayjs(values.fecha_limite).format('YYYY-MM-DD') : null,
-        enviar_notificacion: true,
-        enviar_a_todos: enviarATodos,
-        unidades_seleccionadas: enviarATodos ? [] : selectedUnidades
-      };
-      
-      const response = await finanzasAPI.createCuotaMensual(expensaData);
-      message.success('Expensa creada exitosamente y notificación enviada a los residentes');
-      
-      if (response && response.cuotas_generadas) {
-        message.info(`Se generaron ${response.cuotas_generadas} expensas individuales`);
+      if (editingCuota) {
+        // Actualizar expensa existente
+        const expensaData = {
+          descripcion: values.descripcion,
+          monto_total: values.monto_total,
+          fecha_limite: values.fecha_limite ? dayjs(values.fecha_limite).format('YYYY-MM-DD') : null
+        };
+        await finanzasAPI.updateCuotaMensual(editingCuota.id, expensaData);
+        message.success('Expensa actualizada exitosamente');
+      } else {
+        // Crear nueva expensa
+        const expensaData = {
+          ...values,
+          fecha_limite: values.fecha_limite ? dayjs(values.fecha_limite).format('YYYY-MM-DD') : null,
+          enviar_notificacion: true,
+          enviar_a_todos: enviarATodos,
+          unidades_seleccionadas: enviarATodos ? [] : selectedUnidades
+        };
+        
+        const response = await finanzasAPI.createCuotaMensual(expensaData);
+        message.success('Expensa creada exitosamente y notificación enviada a los residentes');
+        
+        if (response && response.cuotas_generadas) {
+          message.info(`Se generaron ${response.cuotas_generadas} expensas individuales`);
+        }
       }
       
       setIsExpensaModalVisible(false);
+      setEditingCuota(null);
       loadData();
     } catch (error) {
+      console.error('Error al guardar expensa:', error);
       message.error('Error al guardar expensa: ' + (error.response?.data?.detail || error.message));
     }
   };
 
   const handleSubmitPago = async (values) => {
     try {
-      await finanzasAPI.registrarPago(selectedCuotaUnidad.id, values);
+      const pagoData = {
+        monto: values.monto,
+        metodo_pago: values.metodo_pago,
+        observaciones: values.observaciones,
+        numero_referencia: values.numero_referencia
+      };
+      
+      await finanzasAPI.registrarPago(selectedCuota.id, pagoData);
       message.success('Pago registrado exitosamente');
       setIsPagoModalVisible(false);
       loadData();
@@ -899,20 +676,10 @@ const GestionCuotas = () => {
     }
   };
 
-  const handleGenerarCuotas = async (cuotaId) => {
-    try {
-      await finanzasAPI.generarCuotasUnidades(cuotaId);
-      message.success('Cuotas generadas exitosamente para todas las unidades');
-      loadData();
-    } catch (error) {
-      message.error('Error al generar cuotas: ' + (error.response?.data?.detail || error.message));
-    }
-  };
-
   if (!canAccess('administrador')) {
     return (
-      <div className="access-denied">
-        <h2>Acceso Denegado</h2>
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
+        <h2 style={{ color: '#dc3545', marginBottom: '16px' }}>Acceso Denegado</h2>
         <p>No tiene permisos para acceder a esta sección.</p>
       </div>
     );
@@ -920,46 +687,67 @@ const GestionCuotas = () => {
 
   if (loading) {
     return (
-      <div className="dashboard-loading">
-        <div>Cargando datos de cuotas...</div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px', fontSize: '16px', color: '#666' }}>
+        Cargando datos de cuotas...
       </div>
     );
   }
 
   return (
-    <div className="dashboard-finanzas">
-      <div className="dashboard-header">
-        <h1>💰 CU22 - Gestión de Cuotas y Expensas</h1>
+    <div className="dashboard-finanzas-fixed">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', padding: '0 2px' }}>
+        <div>
+          <h1 style={{ color: '#2c3e50', margin: 0, fontSize: '24px', fontWeight: 600 }}>💰 CU22 - Gestión de Cuotas y Expensas</h1>
+        </div>
         <Space>
           <Button 
             type="primary" 
             icon={<PlusOutlined />}
-            onClick={() => setIsCuotaModalVisible(true)}
+            onClick={handleCrearCuota}
           >
             Nueva Cuota
           </Button>
           <Button 
             type="default" 
             icon={<PlusOutlined />}
-            onClick={() => setIsExpensaModalVisible(true)}
+            onClick={handleCrearExpensa}
           >
             Nueva Expensa
           </Button>
         </Space>
       </div>
 
+      {loading && (
+        <div style={{ backgroundColor: '#d1ecf1', color: '#0c5460', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #bee5eb', fontSize: '14px', textAlign: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ marginRight: '10px' }}>⏳</div>
+            <span>Cargando datos de cuotas y expensas...</span>
+          </div>
+        </div>
+      )}
+
       {error && (
-        <div className="error-message">
-          {error}
+        <div style={{ backgroundColor: '#f8d7da', color: '#721c24', padding: '12px 16px', borderRadius: '8px', marginBottom: '20px', border: '1px solid #f5c6cb', fontSize: '14px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>{error}</span>
+            <Button 
+              size="small" 
+              type="primary" 
+              onClick={loadData}
+              style={{ marginLeft: '10px' }}
+            >
+              Reintentar
+            </Button>
+          </div>
         </div>
       )}
 
       {/* Estadísticas */}
-      <Row gutter={16} className="stats-row">
+      <Row gutter={16} style={{ marginBottom: '20px' }}>
         <Col span={3}>
           <Card>
             <Statistic
-              title="Cuotas"
+              title="Cuotas Mensuales"
               value={estadisticas.totalCuotasMensuales}
               prefix={<HomeOutlined />}
             />
@@ -968,13 +756,13 @@ const GestionCuotas = () => {
         <Col span={3}>
           <Card>
             <Statistic
-              title="Expensas"
+              title="Expensas Mensuales"
               value={estadisticas.totalExpensasMensuales}
               prefix={<CalculatorOutlined />}
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
           <Card>
             <Statistic
               title="Pagadas"
@@ -984,7 +772,7 @@ const GestionCuotas = () => {
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
           <Card>
             <Statistic
               title="Pendientes"
@@ -994,7 +782,7 @@ const GestionCuotas = () => {
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
           <Card>
             <Statistic
               title="Parciales"
@@ -1004,7 +792,7 @@ const GestionCuotas = () => {
             />
           </Card>
         </Col>
-        <Col span={4}>
+        <Col span={3}>
           <Card>
             <Statistic
               title="Vencidas"
@@ -1016,7 +804,7 @@ const GestionCuotas = () => {
         </Col>
       </Row>
 
-      <Row gutter={16} className="metrics-row">
+      <Row gutter={16} style={{ marginBottom: '20px' }}>
         <Col span={8}>
           <Card>
             <Statistic
@@ -1108,22 +896,6 @@ const GestionCuotas = () => {
             Limpiar Filtros
           </Button>
         </Space>
-        
-        {filtroMes && (
-          <div style={{ marginTop: 12, padding: 8, background: '#e6f7ff', borderRadius: 6 }}>
-            <span style={{ color: '#1890ff', fontWeight: 'bold' }}>
-              📅 Mostrando pagos del mes: {filtroMes}
-            </span>
-            <Button 
-              type="link" 
-              size="small" 
-              onClick={handleQuitarFiltroMes}
-              style={{ marginLeft: 8 }}
-            >
-              ✕ Quitar filtro
-            </Button>
-          </div>
-        )}
       </Card>
 
       <Card 
@@ -1133,7 +905,7 @@ const GestionCuotas = () => {
           <Button 
             type="primary" 
             icon={<PlusOutlined />}
-            onClick={() => setIsCuotaModalVisible(true)}
+            onClick={handleCrearCuota}
           >
             Nueva Cuota
           </Button>
@@ -1154,13 +926,13 @@ const GestionCuotas = () => {
       </Card>
 
       <Card 
-        title="🏠 Expensas Mensuales (Cuotas)" 
+        title="🏠 Expensas Mensuales" 
         style={{ marginBottom: 24 }}
         extra={
           <Button 
             type="default" 
             icon={<PlusOutlined />}
-            onClick={() => setIsExpensaModalVisible(true)}
+            onClick={handleCrearExpensa}
           >
             Nueva Expensa
           </Button>
@@ -1176,7 +948,7 @@ const GestionCuotas = () => {
             showQuickJumper: true,
             showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} expensas mensuales`,
           }}
-          columns={expensasMensualesColumns}
+          columns={cuotasMensualesColumns}
         />
       </Card>
 
@@ -1200,29 +972,8 @@ const GestionCuotas = () => {
         />
       </Card>
 
-      <Card 
-        title="🏠 Expensas por Unidad (Cuotas Individuales)" 
-        style={{ marginBottom: 24 }}
-      >
-        <Table
-          dataSource={expensasUnidad}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} expensas por unidad`,
-          }}
-          columns={expensasUnidadColumns}
-          scroll={{ x: 'max-content' }}
-          responsive={true}
-        />
-      </Card>
-
-
       <Modal
-        title={editingCuota ? 'Editar Cuota por Unidad' : '💰 Nueva Cuota'}
+        title={editingCuota ? (editingCuota.mes_año ? 'Editar Cuota Mensual' : 'Editar Cuota por Unidad') : '💰 Nueva Cuota'}
         open={isCuotaModalVisible}
         onCancel={handleCerrarModal}
         footer={null}
@@ -1350,14 +1101,16 @@ const GestionCuotas = () => {
         </Form>
       </Modal>
 
+      {/* Modal Expensa */}
       <Modal
-        title="🏠 Nueva Expensa (Cuota Mensual)"
+        title={editingCuota ? 'Editar Expensa' : '🏠 Nueva Expensa'}
         open={isExpensaModalVisible}
         onCancel={() => setIsExpensaModalVisible(false)}
         footer={null}
         width={600}
       >
         <Form
+          form={expensaForm}
           layout="vertical"
           onFinish={handleSubmitExpensa}
         >
@@ -1393,13 +1146,8 @@ const GestionCuotas = () => {
           >
             <DatePicker style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item
-            name="descripcion"
-            label="Descripción"
-          >
-            <TextArea rows={3} placeholder="Descripción de la expensa" />
-          </Form.Item>
           
+          <Divider>Distribución de Expensas</Divider>
           <Form.Item label="Enviar notificación a">
             <Radio.Group 
               value={enviarATodos} 
@@ -1442,7 +1190,7 @@ const GestionCuotas = () => {
           <Form.Item>
             <Space>
               <Button type="primary" htmlType="submit">
-                Crear Expensa
+                {editingCuota ? 'Actualizar Expensa' : 'Crear Expensa'}
               </Button>
               <Button onClick={() => setIsExpensaModalVisible(false)}>
                 Cancelar
@@ -1527,4 +1275,4 @@ const GestionCuotas = () => {
   );
 };
 
-export default GestionCuotas;
+export default GestionCuotasFixed;

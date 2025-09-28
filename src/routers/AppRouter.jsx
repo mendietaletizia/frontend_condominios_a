@@ -5,7 +5,6 @@ import IniciarSesion from '../autenticacion/IniciarSesion';
 import Dashboard from '../components/Dashboard';
 import NotImplemented from '../components/NotImplemented';
 import ListaAreasComunes from '../mantenimiento/ListaAreasComunes';
-import ListaReservas from '../mantenimiento/ListaReservas';
 import ListaReservasResidente from '../mantenimiento/ListaReservasResidente';
 import ListaAreasDisponibles from '../mantenimiento/ListaAreasDisponibles';
 import ListaEventos from '../comunidad/ListaEventos';
@@ -20,7 +19,8 @@ import ListaUnidades from '../comunidad/ListaUnidades';
 import ListaMascotas from '../comunidad/ListaMascotas';
 import ListaGastos from '../economia/ListaGastos';
 import ListaMultas from '../economia/ListaMultas';
-import GestionCuotas from '../finanzas/GestionCuotas';
+import GestionCuotasFixed from '../finanzas/GestionCuotasFixed';
+import MisCuotas from '../finanzas/MisCuotas';
 import DashboardAcceso from '../acceso/DashboardAcceso';
 import DashboardInvitados from '../invitados/DashboardInvitados';
 import Layout from '../components/Layout';
@@ -176,14 +176,6 @@ const AppRouter = () => {
             } 
           />
           <Route 
-            path="reservas" 
-            element={
-              <ProtectedRoute requiredRoles={['administrador']}>
-                <ListaReservas />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
             path="mis-reservas" 
             element={
               <ProtectedRoute requiredRoles={['residente']}>
@@ -227,7 +219,15 @@ const AppRouter = () => {
             path="cuotas" 
             element={
               <ProtectedRoute requiredRoles={['administrador']}>
-                <GestionCuotas />
+                <GestionCuotasFixed />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="mis-cuotas" 
+            element={
+              <ProtectedRoute requiredRoles={['residente']}>
+                <MisCuotas />
               </ProtectedRoute>
             } 
           />

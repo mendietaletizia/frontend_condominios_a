@@ -1,0 +1,62 @@
+/* Fix para animaciones recursivas que causan crecimiento infinito */
+
+/* Desactivar animaciones recursivas en todos los dashboards */
+.dashboard-unidades > *,
+.dashboard-usuarios > *,
+.dashboard-finanzas > *,
+.dashboard-economia > *,
+.dashboard-mantenimiento > * {
+  animation: none !important;
+}
+
+/* Aplicar animaciones solo a elementos específicos */
+.dashboard-unidades .stats-row,
+.dashboard-usuarios .stats-row,
+.dashboard-finanzas .stats-row,
+.dashboard-economia .stats-row,
+.dashboard-mantenimiento .stats-row {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.dashboard-unidades .unidades-table,
+.dashboard-usuarios .usuarios-table,
+.dashboard-finanzas .unidades-table,
+.dashboard-economia .unidades-table,
+.dashboard-mantenimiento .unidades-table {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Asegurar que las cards no tengan animaciones recursivas */
+.ant-card {
+  animation: none !important;
+}
+
+/* Solo aplicar animaciones a cards específicas de estadísticas */
+.stats-row .ant-card {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Definir la animación fadeIn */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Prevenir transformaciones recursivas */
+* {
+  transform-origin: center;
+}
+
+/* Asegurar que no haya escalado infinito */
+.ant-card,
+.stat-card,
+.metric-item {
+  transform: none !important;
+  animation-iteration-count: 1 !important;
+}

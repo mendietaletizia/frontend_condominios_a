@@ -8,6 +8,7 @@ import './ListaUnidades.css';
 
 const ListaEventos = () => {
   const [eventos, setEventos] = useState([]);
+  const [reservas, setReservas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -18,6 +19,7 @@ const ListaEventos = () => {
 
   useEffect(() => {
     load();
+    loadReservas();
     mantenimientoAPI.getAreasComunes().then((data) => {
       const list = Array.isArray(data) ? data : (data?.results || []);
       setAreas(list);
@@ -34,6 +36,15 @@ const ListaEventos = () => {
       setError('Error al cargar eventos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadReservas = async () => {
+    try {
+      const data = await mantenimientoAPI.getReservas();
+      setReservas(Array.isArray(data) ? data : (data?.results || []));
+    } catch (e) {
+      console.error('Error al cargar reservas:', e);
     }
   };
 
@@ -87,9 +98,43 @@ const ListaEventos = () => {
     }
   };
 
-  const filtered = eventos.filter(ev => !searchText ||
-    ev.titulo?.toLowerCase().includes(searchText.toLowerCase()) ||
-    ev.descripcion?.toLowerCase().includes(searchText.toLowerCase())
+  const handleConfirmarReserva = async (reserva) => {
+    try {
+      await mantenimientoAPI.confirmarReserva(reserva.id);
+      message.success('Reserva confirmada y evento creado');
+      load();
+      loadReservas();
+    } catch (e) {
+      message.error('No se pudo confirmar la reserva');
+    }
+  };
+
+  const handleCancelarReserva = async (reserva) => {
+    try {
+      await mantenimientoAPI.cancelarReserva(reserva.id);
+      message.success('Reserva cancelada');
+      loadReservas();
+    } catch (e) {
+      message.error('No se pudo cancelar la reserva');
+    }
+  };
+
+  // Combinar eventos y reservas para mostrar en una sola tabla
+  const combinedData = [
+    ...eventos.map(ev => ({ ...ev, tipo: 'evento' })),
+    ...reservas.map(res => ({ 
+      ...res, 
+      tipo: 'reserva',
+      titulo: `Reserva: ${res.area?.nombre || 'Área'}`,
+      descripcion: `Reserva del área ${res.area?.nombre || 'N/A'} el ${res.fecha} de ${res.hora_inicio} a ${res.hora_fin} por ${res.residente?.persona?.nombre || 'Residente'}`,
+      fecha: `${res.fecha}T${res.hora_inicio}`,
+      estado: res.estado === 'pendiente' ? false : true
+    }))
+  ];
+
+  const filtered = combinedData.filter(item => !searchText ||
+    item.titulo?.toLowerCase().includes(searchText.toLowerCase()) ||
+    item.descripcion?.toLowerCase().includes(searchText.toLowerCase())
   );
 
   const columns = [
@@ -101,10 +146,19 @@ const ListaEventos = () => {
       key: 'tipo', 
       width: 120,
       render: (_, record) => {
-        const esReserva = record.titulo?.includes('Reserva:');
+        if (record.tipo === 'reserva') {
+          const estadoColor = record.estado === 'pendiente' ? 'orange' : 
+                             record.estado === 'confirmada' ? 'green' : 
+                             record.estado === 'cancelada' ? 'red' : 'blue';
+          return (
+            <Tag color={estadoColor}>
+              Reserva ({record.estado})
+            </Tag>
+          );
+        }
         return (
-          <Tag color={esReserva ? 'green' : 'blue'}>
-            {esReserva ? 'Reserva' : 'Evento'}
+          <Tag color="blue">
+            Evento
           </Tag>
         );
       }
@@ -114,9 +168,11 @@ const ListaEventos = () => {
       key: 'residente', 
       width: 150,
       render: (_, record) => {
-        const esReserva = record.titulo?.includes('Reserva:');
-        if (esReserva && record.descripcion) {
-          // Extraer nombre del residente de la descripción
+        if (record.tipo === 'reserva' && record.residente?.persona?.nombre) {
+          return <Tag color="orange">{record.residente.persona.nombre}</Tag>;
+        }
+        if (record.tipo === 'evento' && record.descripcion) {
+          // Extraer nombre del residente de la descripción del evento
           const match = record.descripcion.match(/por (.+?) \(CI:/);
           if (match) {
             return <Tag color="orange">{match[1]}</Tag>;
@@ -140,12 +196,46 @@ const ListaEventos = () => {
       }
     },
     { title: 'Estado', dataIndex: 'estado', key: 'estado', width: 90, align: 'center', render: (s) => <Tag color={s ? 'green' : 'default'}>{s ? 'ACTIVO' : 'INACTIVO'}</Tag> },
-    { title: 'Acciones', key: 'acciones', width: 160, align: 'center', render: (_, r) => (
-      <Space size="small" wrap>
-        <Button type="link" size="small" icon={<EditOutlined />} onClick={() => showModal(r)} style={{padding:'4px 6px', fontSize:'11px'}}>Editar</Button>
-        <Button type="link" danger size="small" icon={<DeleteOutlined />} onClick={() => handleDelete(r)} style={{padding:'4px 6px', fontSize:'11px'}}>Eliminar</Button>
-      </Space>
-    ) }
+    { 
+      title: 'Acciones', 
+      key: 'acciones', 
+      width: 200, 
+      align: 'center', 
+      render: (_, r) => {
+        if (r.tipo === 'reserva') {
+          return (
+            <Space size="small" wrap>
+              {r.estado === 'pendiente' && (
+                <Button 
+                  type="primary" 
+                  size="small" 
+                  onClick={() => handleConfirmarReserva(r)} 
+                  style={{padding:'4px 6px', fontSize:'11px'}}
+                >
+                  Confirmar
+                </Button>
+              )}
+              {(r.estado === 'pendiente' || r.estado === 'confirmada') && (
+                <Button 
+                  danger 
+                  size="small" 
+                  onClick={() => handleCancelarReserva(r)} 
+                  style={{padding:'4px 6px', fontSize:'11px'}}
+                >
+                  Cancelar
+                </Button>
+              )}
+            </Space>
+          );
+        }
+        return (
+          <Space size="small" wrap>
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => showModal(r)} style={{padding:'4px 6px', fontSize:'11px'}}>Editar</Button>
+            <Button type="link" danger size="small" icon={<DeleteOutlined />} onClick={() => handleDelete(r)} style={{padding:'4px 6px', fontSize:'11px'}}>Eliminar</Button>
+          </Space>
+        );
+      }
+    }
   ];
 
   if (loading) {
@@ -159,7 +249,7 @@ const ListaEventos = () => {
   return (
     <div className="dashboard-unidades">
       <div className="dashboard-header">
-        <h1><CalendarOutlined /> Gestión de Eventos</h1>
+        <h1><CalendarOutlined /> Gestión de Eventos y Reservas</h1>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>Nuevo Evento</Button>
       </div>
 
@@ -169,7 +259,7 @@ const ListaEventos = () => {
         </Space>
       </Card>
 
-      <Card title={`Eventos (${filtered.length})`} className="unidades-table" size="small">
+      <Card title={`Eventos y Reservas (${filtered.length})`} className="unidades-table" size="small">
         <Table columns={columns} dataSource={filtered} rowKey="id" size="small" pagination={{ pageSize: 10, showSizeChanger: true, showQuickJumper: true, size: 'small' }} responsive />
       </Card>
 

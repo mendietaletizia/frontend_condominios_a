@@ -619,17 +619,20 @@
   }
 }
 
-.dashboard-usuarios > * {
+/* Animaciones solo para elementos específicos, no recursivas */
+.dashboard-usuarios .stats-row {
   animation: fadeIn 0.6s ease-out;
 }
 
-.stat-card {
+.dashboard-usuarios .usuarios-filters {
   animation: fadeIn 0.6s ease-out;
 }
 
-.stat-card:nth-child(1) { animation-delay: 0.1s; }
-.stat-card:nth-child(2) { animation-delay: 0.2s; }
-.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.dashboard-usuarios .usuarios-table {
+  animation: fadeIn 0.6s ease-out;
+}
+
+/* Remover animaciones recursivas de stat-card */
 
 /* Scroll personalizado */
 .usuarios-table .ant-table-body::-webkit-scrollbar {

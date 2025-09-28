@@ -130,15 +130,6 @@ export const finanzasAPI = {
     }
   },
 
-  async registrarPago(cuotaId, pagoData) {
-    try {
-      const response = await api.post(`/finanzas/cuotas-unidad/${cuotaId}/registrar_pago/`, pagoData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
   // ===== PAGOS DE CUOTAS (CU22) =====
   async getPagosCuotas() {
     try {
@@ -201,5 +192,181 @@ export const finanzasAPI = {
     } catch (error) {
       throw error;
     }
-  }
+  },
+
+  // ===== EXPENSAS MENSUALES =====
+  async getExpensasMensuales() {
+    try {
+      const response = await api.get('/finanzas/expensas-mensuales/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getExpensaMensual(id) {
+    try {
+      const response = await api.get(`/finanzas/expensas-mensuales/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async createExpensaMensual(expensaData) {
+    try {
+      const response = await api.post('/finanzas/expensas-mensuales/', expensaData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async updateExpensaMensual(id, expensaData) {
+    try {
+      const response = await api.put(`/finanzas/expensas-mensuales/${id}/`, expensaData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async deleteExpensaMensual(id) {
+    try {
+      const response = await api.delete(`/finanzas/expensas-mensuales/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ===== EXPENSAS POR UNIDAD =====
+  async getExpensasUnidad() {
+    try {
+      const response = await api.get('/finanzas/expensas-unidad/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getExpensaUnidad(id) {
+    try {
+      const response = await api.get(`/finanzas/expensas-unidad/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async updateExpensaUnidad(id, expensaData) {
+    try {
+      const response = await api.put(`/finanzas/expensas-unidad/${id}/`, expensaData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async deleteExpensaUnidad(id) {
+    try {
+      const response = await api.delete(`/finanzas/expensas-unidad/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ===== CUOTAS EXTRAORDINARIAS =====
+  async getCuotasExtraordinarias() {
+    try {
+      const response = await api.get('/finanzas/cuotas-extraordinarias/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getCuotaExtraordinaria(id) {
+    try {
+      const response = await api.get(`/finanzas/cuotas-extraordinarias/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async createCuotaExtraordinaria(cuotaData) {
+    try {
+      const response = await api.post('/finanzas/cuotas-extraordinarias/', cuotaData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async updateCuotaExtraordinaria(id, cuotaData) {
+    try {
+      const response = await api.put(`/finanzas/cuotas-extraordinarias/${id}/`, cuotaData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async deleteCuotaExtraordinaria(id) {
+    try {
+      const response = await api.delete(`/finanzas/cuotas-extraordinarias/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ===== PAGOS (ALIAS PARA COMPATIBILIDAD) =====
+  async getPagos() {
+    try {
+      const response = await api.get('/finanzas/pagos/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getPago(id) {
+    try {
+      const response = await api.get(`/finanzas/pagos/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async createPago(pagoData) {
+    try {
+      const response = await api.post('/finanzas/pagos/', pagoData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async updatePago(id, pagoData) {
+    try {
+      const response = await api.put(`/finanzas/pagos/${id}/`, pagoData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async deletePago(id) {
+    try {
+      const response = await api.delete(`/finanzas/pagos/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
 };
