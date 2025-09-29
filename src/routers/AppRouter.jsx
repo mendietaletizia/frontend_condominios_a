@@ -19,8 +19,11 @@ import ListaUnidades from '../comunidad/ListaUnidades';
 import ListaMascotas from '../comunidad/ListaMascotas';
 import ListaGastos from '../economia/ListaGastos';
 import ListaMultas from '../economia/ListaMultas';
+import ReportesAnalitica from '../economia/ReportesAnalitica';
 import GestionCuotasFixed from '../finanzas/GestionCuotasFixed';
 import MisCuotas from '../finanzas/MisCuotas';
+import GestionIngresos from '../finanzas/GestionIngresos';
+import EstadisticasIngresos from '../finanzas/EstadisticasIngresos';
 import DashboardAcceso from '../acceso/DashboardAcceso';
 import DashboardInvitados from '../invitados/DashboardInvitados';
 import Layout from '../components/Layout';
@@ -194,6 +197,22 @@ const AppRouter = () => {
 
           {/* ===== PAGOS Y FINANZAS ===== */}
           <Route 
+            path="gestion-ingresos" 
+            element={
+              <ProtectedRoute requiredRoles={['administrador']}>
+                <GestionIngresos />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="estadisticas-ingresos" 
+            element={
+              <ProtectedRoute requiredRoles={['administrador']}>
+                <EstadisticasIngresos />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="reportes-financieros" 
             element={
               <ProtectedRoute requiredRoles={['administrador']}>
@@ -246,6 +265,14 @@ const AppRouter = () => {
             element={
               <ProtectedRoute requiredRoles={['administrador', 'empleado']}>
                 <ListaMultas />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="reportes-analitica" 
+            element={
+              <ProtectedRoute requiredRoles={['administrador']}>
+                <ReportesAnalitica />
               </ProtectedRoute>
             } 
           />

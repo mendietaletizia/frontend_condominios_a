@@ -33,9 +33,9 @@ const ListaMascotas = () => {
       console.log('🔍 Cargando datos de mascotas...');
       
       const [mascotasRes, residentesRes, unidadesRes] = await Promise.all([
-        api.get('/comunidad/mascotas/'),
-        api.get('/usuarios/residentes/'),
-        api.get('/comunidad/unidades/')
+        api.get('/mascotas/'),
+        api.get('/residentes/'),
+        api.get('/unidades/')
       ]);
 
       console.log('✅ Datos cargados:', {
@@ -83,7 +83,7 @@ const ListaMascotas = () => {
     };
 
     console.log('🐾 Creando mascota:', mascotaData);
-    await api.post('/comunidad/mascotas/', mascotaData);
+    await api.post('/mascotas/', mascotaData);
     message.success('Mascota creada exitosamente');
     setIsModalVisible(false);
     form.resetFields();
@@ -104,7 +104,7 @@ const ListaMascotas = () => {
     };
 
     console.log('🔄 Actualizando mascota:', mascotaData);
-    await api.put(`/comunidad/mascotas/${editingMascota.id}/`, mascotaData);
+    await api.put(`/mascotas/${editingMascota.id}/`, mascotaData);
     message.success('Mascota actualizada exitosamente');
     setIsModalVisible(false);
     setEditingMascota(null);
@@ -122,7 +122,7 @@ const ListaMascotas = () => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          await api.delete(`/comunidad/mascotas/${id}/`);
+          await api.delete(`/mascotas/${id}/`);
           message.success('Mascota eliminada exitosamente');
           loadData();
         } catch (error) {

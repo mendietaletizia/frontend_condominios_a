@@ -1,0 +1,272 @@
+.estadisticas-ingresos {
+  padding: 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: #1890ff;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.page-header h1 .anticon {
+  margin-right: 8px;
+}
+
+.stat-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-card .ant-statistic-title {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.stat-card .ant-statistic-content {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.chart-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.chart-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.chart-card .ant-card-head-title {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.ingresos-por-tipo {
+  padding: 16px 0;
+}
+
+.tipo-item {
+  margin-bottom: 20px;
+}
+
+.tipo-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.tipo-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.tipo-nombre {
+  flex: 1;
+  font-weight: 500;
+  color: #333;
+}
+
+.tipo-monto {
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.tipo-porcentaje {
+  text-align: right;
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.growth-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.growth-card .ant-card-head-title {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.growth-content {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.growth-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.growth-number {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.growth-description {
+  color: #666;
+  font-size: 14px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+}
+
+.loading-container .ant-spin {
+  font-size: 24px;
+}
+
+/* Tabla personalizada */
+.chart-card .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.chart-card .ant-table-tbody > tr:hover > td {
+  background: #f5f5f5;
+}
+
+.chart-card .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .estadisticas-ingresos {
+    padding: 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .page-header h1 {
+    font-size: 20px;
+  }
+  
+  .stat-card .ant-statistic-content {
+    font-size: 18px;
+  }
+  
+  .tipo-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .tipo-monto {
+    align-self: flex-end;
+  }
+  
+  .growth-content {
+    padding: 16px 0;
+  }
+  
+  .growth-number {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .estadisticas-ingresos {
+    padding: 12px;
+  }
+  
+  .stat-card .ant-statistic-content {
+    font-size: 16px;
+  }
+  
+  .growth-number {
+    font-size: 18px;
+  }
+}
+
+/* Animaciones */
+.stat-card {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.chart-card {
+  animation: fadeInUp 0.3s ease-out 0.1s both;
+}
+
+.growth-card {
+  animation: fadeInUp 0.3s ease-out 0.2s both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Efectos hover */
+.tipo-item:hover {
+  background: #f8f9fa;
+  border-radius: 4px;
+  padding: 8px;
+  margin: -8px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+/* Colores personalizados para los tipos */
+.tipo-item[data-tipo="cuotas"] .tipo-color {
+  background-color: #1890ff !important;
+}
+
+.tipo-item[data-tipo="multas"] .tipo-color {
+  background-color: #ff4d4f !important;
+}
+
+.tipo-item[data-tipo="servicios"] .tipo-color {
+  background-color: #52c41a !important;
+}
+
+.tipo-item[data-tipo="alquiler"] .tipo-color {
+  background-color: #faad14 !important;
+}
+
+.tipo-item[data-tipo="eventos"] .tipo-color {
+  background-color: #722ed1 !important;
+}
+
+.tipo-item[data-tipo="donaciones"] .tipo-color {
+  background-color: #13c2c2 !important;
+}
+
+.tipo-item[data-tipo="otros"] .tipo-color {
+  background-color: #8c8c8c !important;
+}

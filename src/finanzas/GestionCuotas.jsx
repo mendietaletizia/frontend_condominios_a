@@ -84,7 +84,7 @@ const GestionCuotas = () => {
       }
 
       try {
-        const unidadesRes = await api.get('/comunidad/unidades/');
+        const unidadesRes = await api.get('/unidades/');
         setUnidades(unidadesRes.data.results || unidadesRes.data || []);
       } catch (error) {
         console.error('Error cargando unidades:', error);
@@ -92,7 +92,7 @@ const GestionCuotas = () => {
       }
 
       try {
-        const residentesRes = await api.get('/usuarios/residentes/');
+        const residentesRes = await api.get('/residentes/');
         setResidentes(residentesRes.data.results || residentesRes.data || []);
       } catch (error) {
         console.error('Error cargando residentes:', error);

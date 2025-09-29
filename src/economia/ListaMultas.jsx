@@ -28,8 +28,8 @@ const ListaMultas = () => {
     try {
       setLoading(true);
       const [multasRes, residentesRes] = await Promise.all([
-        api.get('/economia/multa/'),
-        api.get('/usuarios/persona/')
+        api.get('/multas/'),
+        api.get('/persona/')
       ]);
       setMultas(multasRes.data);
       setResidentes(residentesRes.data);

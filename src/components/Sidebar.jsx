@@ -50,7 +50,9 @@ const Sidebar = ({ isOpen, onToggle }) => {
         label: 'Pagos y Finanzas',
         icon: '💰',
         cases: [
-          { id: 'cu18', label: 'CU18 - Reportes Financieros', path: '/reportes-financieros', implemented: false, roles: ['administrador'] },
+          { id: 'cu18-gestion', label: 'CU18 - Gestión de Ingresos', path: '/gestion-ingresos', implemented: true, roles: ['administrador'] },
+          { id: 'cu18-estadisticas', label: 'CU18 - Estadísticas de Ingresos', path: '/estadisticas-ingresos', implemented: true, roles: ['administrador'] },
+          { id: 'cu18-reportes', label: 'CU18 - Reportes Financieros', path: '/reportes-financieros', implemented: false, roles: ['administrador'] },
           { id: 'cu21', label: 'CU21 - Gestión de Presupuestos', path: '/presupuestos', implemented: false, roles: ['administrador'] },
           { id: 'cu22', label: 'CU22 - Gestión de Cuotas y Expensas', path: '/cuotas', implemented: true, roles: ['administrador'] }
         ]
@@ -62,8 +64,9 @@ const Sidebar = ({ isOpen, onToggle }) => {
         cases: [
           { id: 'cu8', label: 'CU8 - Gestión de Gastos', path: '/gastos', implemented: true, roles: ['administrador'] },
           { id: 'cu9', label: 'CU9 - Gestión de Multas', path: '/multas', implemented: true, roles: ['administrador', 'residente'] },
-          { id: 'cu19', label: 'CU19 - Análisis de Costos', path: '/analisis-costos', implemented: true, roles: ['administrador'] },
-          { id: 'cu20', label: 'CU20 - Proyecciones Financieras', path: '/proyecciones', implemented: true, roles: ['administrador'] }
+          { id: 'cu19-reportes', label: 'CU19 - Reportes y Analítica', path: '/reportes-analitica', implemented: true, roles: ['administrador'] },
+          { id: 'cu19-costos', label: 'CU19 - Análisis de Costos', path: '/analisis-costos', implemented: false, roles: ['administrador'] },
+          { id: 'cu20', label: 'CU20 - Proyecciones Financieras', path: '/proyecciones', implemented: false, roles: ['administrador'] }
         ]
       },
       {

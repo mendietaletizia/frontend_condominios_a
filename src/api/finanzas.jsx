@@ -5,7 +5,7 @@ export const finanzasAPI = {
   // ===== CUOTAS MENSUALES =====
   async getCuotasMensuales() {
     try {
-      const response = await api.get('/finanzas/cuotas-mensuales/');
+      const response = await api.get('/cuotas-mensuales/');
       return response.data;
     } catch (error) {
       throw error;
@@ -14,7 +14,7 @@ export const finanzasAPI = {
 
   async getCuotaMensual(id) {
     try {
-      const response = await api.get(`/finanzas/cuotas-mensuales/${id}/`);
+      const response = await api.get(`/cuotas-mensuales/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -23,7 +23,7 @@ export const finanzasAPI = {
 
   async createCuotaMensual(cuotaData) {
     try {
-      const response = await api.post('/finanzas/cuotas-mensuales/', cuotaData);
+      const response = await api.post('/cuotas-mensuales/', cuotaData);
       return response.data;
     } catch (error) {
       throw error;
@@ -32,7 +32,7 @@ export const finanzasAPI = {
 
   async updateCuotaMensual(id, cuotaData) {
     try {
-      const response = await api.put(`/finanzas/cuotas-mensuales/${id}/`, cuotaData);
+      const response = await api.put(`/cuotas-mensuales/${id}/`, cuotaData);
       return response.data;
     } catch (error) {
       throw error;
@@ -41,7 +41,7 @@ export const finanzasAPI = {
 
   async deleteCuotaMensual(id) {
     try {
-      const response = await api.delete(`/finanzas/cuotas-mensuales/${id}/`);
+      const response = await api.delete(`/cuotas-mensuales/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -50,7 +50,7 @@ export const finanzasAPI = {
 
   async generarCuotasUnidades(cuotaId) {
     try {
-      const response = await api.post(`/finanzas/cuotas-mensuales/${cuotaId}/generar_cuotas_unidades/`);
+      const response = await api.post(`/cuotas-mensuales/${cuotaId}/generar_cuotas_unidades/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -59,7 +59,7 @@ export const finanzasAPI = {
 
   async getResumenCuotas() {
     try {
-      const response = await api.get('/finanzas/cuotas-mensuales/resumen/');
+      const response = await api.get('/cuotas-mensuales/resumen/');
       return response.data;
     } catch (error) {
       throw error;
@@ -69,7 +69,7 @@ export const finanzasAPI = {
   // ===== CUOTAS POR UNIDAD =====
   async getCuotasUnidad() {
     try {
-      const response = await api.get('/finanzas/cuotas-unidad/');
+      const response = await api.get('/cuotas-unidad/');
       return response.data;
     } catch (error) {
       throw error;
@@ -78,7 +78,7 @@ export const finanzasAPI = {
 
   async getCuotaUnidad(id) {
     try {
-      const response = await api.get(`/finanzas/cuotas-unidad/${id}/`);
+      const response = await api.get(`/cuotas-unidad/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -87,7 +87,7 @@ export const finanzasAPI = {
 
   async updateCuotaUnidad(id, cuotaData) {
     try {
-      const response = await api.put(`/finanzas/cuotas-unidad/${id}/`, cuotaData);
+      const response = await api.put(`/cuotas-unidad/${id}/`, cuotaData);
       return response.data;
     } catch (error) {
       throw error;
@@ -96,7 +96,7 @@ export const finanzasAPI = {
 
   async deleteCuotaUnidad(id) {
     try {
-      const response = await api.delete(`/finanzas/cuotas-unidad/${id}/`);
+      const response = await api.delete(`/cuotas-unidad/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -105,7 +105,7 @@ export const finanzasAPI = {
 
   async getMorosos() {
     try {
-      const response = await api.get('/finanzas/cuotas-unidad/morosos/');
+      const response = await api.get('/cuotas-unidad/morosos/');
       return response.data;
     } catch (error) {
       throw error;
@@ -114,7 +114,7 @@ export const finanzasAPI = {
 
   async getCuotasPendientes() {
     try {
-      const response = await api.get('/finanzas/cuotas-unidad/pendientes/');
+      const response = await api.get('/cuotas-unidad/pendientes/');
       return response.data;
     } catch (error) {
       throw error;
@@ -123,7 +123,7 @@ export const finanzasAPI = {
 
   async getCuotasVencidas() {
     try {
-      const response = await api.get('/finanzas/cuotas-unidad/vencidas/');
+      const response = await api.get('/cuotas-unidad/vencidas/');
       return response.data;
     } catch (error) {
       throw error;
@@ -133,7 +133,7 @@ export const finanzasAPI = {
   // ===== PAGOS DE CUOTAS (CU22) =====
   async getPagosCuotas() {
     try {
-      const response = await api.get('/finanzas/pagos/');
+      const response = await api.get('/pagos/');
       return response.data;
     } catch (error) {
       throw error;
@@ -142,7 +142,7 @@ export const finanzasAPI = {
 
   async getPagoCuota(id) {
     try {
-      const response = await api.get(`/finanzas/pagos/${id}/`);
+      const response = await api.get(`/pagos/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -151,7 +151,7 @@ export const finanzasAPI = {
 
   async createPagoCuota(pagoData) {
     try {
-      const response = await api.post('/finanzas/pagos/', pagoData);
+      const response = await api.post('/pagos/', pagoData);
       return response.data;
     } catch (error) {
       throw error;
@@ -160,7 +160,7 @@ export const finanzasAPI = {
 
   async updatePagoCuota(id, pagoData) {
     try {
-      const response = await api.put(`/finanzas/pagos/${id}/`, pagoData);
+      const response = await api.put(`/pagos/${id}/`, pagoData);
       return response.data;
     } catch (error) {
       throw error;
@@ -169,7 +169,7 @@ export const finanzasAPI = {
 
   async deletePagoCuota(id) {
     try {
-      const response = await api.delete(`/finanzas/pagos/${id}/`);
+      const response = await api.delete(`/pagos/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -178,7 +178,7 @@ export const finanzasAPI = {
 
   async getPagosCuotasPorMes(mesAño) {
     try {
-      const response = await api.get(`/finanzas/pagos/por_mes/?mes_año=${mesAño}`);
+      const response = await api.get(`/pagos/por_mes/?mes_año=${mesAño}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -187,7 +187,7 @@ export const finanzasAPI = {
 
   async getPagosCuotasPorUnidad(unidadId) {
     try {
-      const response = await api.get(`/finanzas/pagos/por_unidad/?unidad_id=${unidadId}`);
+      const response = await api.get(`/pagos/por_unidad/?unidad_id=${unidadId}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -197,7 +197,7 @@ export const finanzasAPI = {
   // ===== EXPENSAS MENSUALES =====
   async getExpensasMensuales() {
     try {
-      const response = await api.get('/finanzas/expensas-mensuales/');
+      const response = await api.get('/expensas-mensuales/');
       return response.data;
     } catch (error) {
       throw error;
@@ -206,7 +206,7 @@ export const finanzasAPI = {
 
   async getExpensaMensual(id) {
     try {
-      const response = await api.get(`/finanzas/expensas-mensuales/${id}/`);
+      const response = await api.get(`/expensas-mensuales/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -215,7 +215,7 @@ export const finanzasAPI = {
 
   async createExpensaMensual(expensaData) {
     try {
-      const response = await api.post('/finanzas/expensas-mensuales/', expensaData);
+      const response = await api.post('/expensas-mensuales/', expensaData);
       return response.data;
     } catch (error) {
       throw error;
@@ -224,7 +224,7 @@ export const finanzasAPI = {
 
   async updateExpensaMensual(id, expensaData) {
     try {
-      const response = await api.put(`/finanzas/expensas-mensuales/${id}/`, expensaData);
+      const response = await api.put(`/expensas-mensuales/${id}/`, expensaData);
       return response.data;
     } catch (error) {
       throw error;
@@ -233,7 +233,7 @@ export const finanzasAPI = {
 
   async deleteExpensaMensual(id) {
     try {
-      const response = await api.delete(`/finanzas/expensas-mensuales/${id}/`);
+      const response = await api.delete(`/expensas-mensuales/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -243,7 +243,7 @@ export const finanzasAPI = {
   // ===== EXPENSAS POR UNIDAD =====
   async getExpensasUnidad() {
     try {
-      const response = await api.get('/finanzas/expensas-unidad/');
+      const response = await api.get('/expensas-unidad/');
       return response.data;
     } catch (error) {
       throw error;
@@ -252,7 +252,7 @@ export const finanzasAPI = {
 
   async getExpensaUnidad(id) {
     try {
-      const response = await api.get(`/finanzas/expensas-unidad/${id}/`);
+      const response = await api.get(`/expensas-unidad/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -261,7 +261,7 @@ export const finanzasAPI = {
 
   async updateExpensaUnidad(id, expensaData) {
     try {
-      const response = await api.put(`/finanzas/expensas-unidad/${id}/`, expensaData);
+      const response = await api.put(`/expensas-unidad/${id}/`, expensaData);
       return response.data;
     } catch (error) {
       throw error;
@@ -270,7 +270,7 @@ export const finanzasAPI = {
 
   async deleteExpensaUnidad(id) {
     try {
-      const response = await api.delete(`/finanzas/expensas-unidad/${id}/`);
+      const response = await api.delete(`/expensas-unidad/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -280,7 +280,7 @@ export const finanzasAPI = {
   // ===== CUOTAS EXTRAORDINARIAS =====
   async getCuotasExtraordinarias() {
     try {
-      const response = await api.get('/finanzas/cuotas-extraordinarias/');
+      const response = await api.get('/cuotas-extraordinarias/');
       return response.data;
     } catch (error) {
       throw error;
@@ -289,7 +289,7 @@ export const finanzasAPI = {
 
   async getCuotaExtraordinaria(id) {
     try {
-      const response = await api.get(`/finanzas/cuotas-extraordinarias/${id}/`);
+      const response = await api.get(`/cuotas-extraordinarias/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -298,7 +298,7 @@ export const finanzasAPI = {
 
   async createCuotaExtraordinaria(cuotaData) {
     try {
-      const response = await api.post('/finanzas/cuotas-extraordinarias/', cuotaData);
+      const response = await api.post('/cuotas-extraordinarias/', cuotaData);
       return response.data;
     } catch (error) {
       throw error;
@@ -307,7 +307,7 @@ export const finanzasAPI = {
 
   async updateCuotaExtraordinaria(id, cuotaData) {
     try {
-      const response = await api.put(`/finanzas/cuotas-extraordinarias/${id}/`, cuotaData);
+      const response = await api.put(`/cuotas-extraordinarias/${id}/`, cuotaData);
       return response.data;
     } catch (error) {
       throw error;
@@ -316,7 +316,7 @@ export const finanzasAPI = {
 
   async deleteCuotaExtraordinaria(id) {
     try {
-      const response = await api.delete(`/finanzas/cuotas-extraordinarias/${id}/`);
+      const response = await api.delete(`/cuotas-extraordinarias/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -326,7 +326,7 @@ export const finanzasAPI = {
   // ===== PAGOS (ALIAS PARA COMPATIBILIDAD) =====
   async getPagos() {
     try {
-      const response = await api.get('/finanzas/pagos/');
+      const response = await api.get('/pagos/');
       return response.data;
     } catch (error) {
       throw error;
@@ -335,7 +335,7 @@ export const finanzasAPI = {
 
   async getPago(id) {
     try {
-      const response = await api.get(`/finanzas/pagos/${id}/`);
+      const response = await api.get(`/pagos/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -344,7 +344,7 @@ export const finanzasAPI = {
 
   async createPago(pagoData) {
     try {
-      const response = await api.post('/finanzas/pagos/', pagoData);
+      const response = await api.post('/pagos/', pagoData);
       return response.data;
     } catch (error) {
       throw error;
@@ -353,7 +353,7 @@ export const finanzasAPI = {
 
   async updatePago(id, pagoData) {
     try {
-      const response = await api.put(`/finanzas/pagos/${id}/`, pagoData);
+      const response = await api.put(`/pagos/${id}/`, pagoData);
       return response.data;
     } catch (error) {
       throw error;
@@ -362,7 +362,7 @@ export const finanzasAPI = {
 
   async deletePago(id) {
     try {
-      const response = await api.delete(`/finanzas/pagos/${id}/`);
+      const response = await api.delete(`/pagos/${id}/`);
       return response.data;
     } catch (error) {
       throw error;

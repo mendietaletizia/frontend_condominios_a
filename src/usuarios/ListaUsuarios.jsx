@@ -62,7 +62,7 @@ const ListaUsuarios = () => {
 
   const cargarResidentes = async () => {
     try {
-      const response = await api.get('/usuarios/residentes/');
+      const response = await api.get('/residentes/');
       const data = Array.isArray(response.data) ? response.data : response.data.results || [];
       setResidentes(data);
     } catch (error) {
@@ -105,7 +105,7 @@ const ListaUsuarios = () => {
           const personaNombre = (values.first_name || values.last_name)
             ? `${values.first_name || ''} ${values.last_name || ''}`.trim()
             : values.username;
-          await api.post('/usuarios/persona/', {
+          await api.post('/persona/', {
             ci: null,
             nombre: personaNombre,
             email: values.email || null,
@@ -164,7 +164,7 @@ const ListaUsuarios = () => {
   const handleCreateResident = async (values) => {
     try {
       // 1. Crear persona
-      const personaRes = await api.post('/usuarios/persona/', {
+      const personaRes = await api.post('/persona/', {
         ci: values.ci || null,
         nombre: values.nombre,
         email: values.email || null,
@@ -179,7 +179,7 @@ const ListaUsuarios = () => {
         usuario_asociado: values.usuario_asociado || null
       };
       
-      await api.post('/usuarios/residentes/', residenteData);
+      await api.post('/residentes/', residenteData);
 
       message.success('Residente creado exitosamente');
       setShowCreateResidentModal(false);

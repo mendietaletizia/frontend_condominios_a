@@ -45,10 +45,10 @@ const ListaEmpleados = () => {
       console.log('🔍 Cargando datos de empleados...');
       
       const [empleadosRes, personasRes, usuariosRes, rolesRes] = await Promise.all([
-        api.get('/usuarios/empleados/'),
-        api.get('/usuarios/persona/'),
-        api.get('/usuarios/usuario/'),
-        api.get('/usuarios/roles/')
+        api.get('/empleados/'),
+        api.get('/persona/'),
+        api.get('/usuario/'),
+        api.get('/roles/')
       ]);
 
       console.log('✅ Datos cargados:', {
@@ -92,7 +92,7 @@ const ListaEmpleados = () => {
     };
 
     console.log('👷 Creando empleado:', empleadoData);
-    await api.post('/usuarios/empleados/', empleadoData);
+    await api.post('/empleados/', empleadoData);
     message.success('Empleado creado exitosamente');
     setIsModalVisible(false);
     form.resetFields();
@@ -107,7 +107,7 @@ const ListaEmpleados = () => {
     };
 
     console.log('🔄 Actualizando empleado:', empleadoData);
-    await api.put(`/usuarios/empleados/${editingEmpleado.id}/`, empleadoData);
+    await api.put(`/empleados/${editingEmpleado.id}/`, empleadoData);
     message.success('Empleado actualizado exitosamente');
     setIsModalVisible(false);
     setEditingEmpleado(null);
@@ -125,7 +125,7 @@ const ListaEmpleados = () => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          await api.delete(`/usuarios/empleados/${id}/`);
+          await api.delete(`/empleados/${id}/`);
           message.success('Empleado eliminado exitosamente');
           loadData();
         } catch (error) {

@@ -39,10 +39,10 @@ const ListaUnidades = () => {
     try {
       setLoading(true);
       const [unidadesRes, residentesUnidadesRes, mascotasRes, residentesRes, usuariosResidentesRes] = await Promise.all([
-        api.get('/comunidad/unidades/'),
-        api.get('/comunidad/residentes-unidad/'),
-        api.get('/comunidad/mascotas/'),
-        api.get('/usuarios/residentes/'),
+        api.get('/unidades/'),
+        api.get('/residentes-unidad/'),
+        api.get('/mascotas/'),
+        api.get('/residentes/'),
         usuariosAPI.getUsuariosResidentes()
       ]);
       
@@ -109,10 +109,10 @@ const ListaUnidades = () => {
       };
 
       if (editingUnidad) {
-        await api.put(`/comunidad/unidades/${editingUnidad.id}/`, dataToSend);
+        await api.put(`/unidades/${editingUnidad.id}/`, dataToSend);
         message.success('Unidad actualizada exitosamente');
       } else {
-        await api.post('/comunidad/unidades/', dataToSend);
+        await api.post('/unidades/', dataToSend);
         message.success('Unidad creada exitosamente');
       }
       
@@ -155,7 +155,7 @@ const ListaUnidades = () => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          await api.delete(`/comunidad/unidades/${id}/`);
+          await api.delete(`/unidades/${id}/`);
           message.success('Unidad eliminada exitosamente');
           loadData();
         } catch (error) {
@@ -241,9 +241,53 @@ const ListaUnidades = () => {
           id_residente: residenteId,
           id_unidad: selectedUnidad.id,
           rol_en_unidad: 'propietario',
-          fecha_inicio: new Date().toISOString().slice(0, 10),
+          fecha_inicio: new Date().toISOString().split('T')[0], // Formato YYYY-MM-DD
           estado: true
         };
+
+        console.log('🔍 Datos de relación a enviar:', relacionData);
+        console.log('🔍 Residente ID:', residenteId, typeof residenteId);
+        console.log('🔍 Unidad ID:', selectedUnidad.id, typeof selectedUnidad.id);
+        console.log('🔍 Tipo de datos:', {
+          id_residente: typeof relacionData.id_residente,
+          id_unidad: typeof relacionData.id_unidad,
+          rol_en_unidad: typeof relacionData.rol_en_unidad,
+          fecha_inicio: typeof relacionData.fecha_inicio,
+          estado: typeof relacionData.estado
+        });
+
+        // Validar que los IDs existen
+        if (!residenteId || residenteId <= 0) {
+          throw new Error('ID de residente inválido');
+        }
+        if (!selectedUnidad.id || selectedUnidad.id <= 0) {
+          throw new Error('ID de unidad inválido');
+        }
+
+        // Verificar que el residente existe
+        try {
+          const residenteCheck = await api.get(`/residentes/${residenteId}/`);
+          console.log('✅ Residente existe:', residenteCheck.data);
+        } catch (error) {
+          console.error('❌ Residente no existe:', error);
+          throw new Error(`El residente con ID ${residenteId} no existe`);
+        }
+
+        // Verificar que la unidad existe
+        try {
+          const unidadCheck = await api.get(`/unidades/${selectedUnidad.id}/`);
+          console.log('✅ Unidad existe:', unidadCheck.data);
+        } catch (error) {
+          console.error('❌ Unidad no existe:', error);
+          throw new Error(`La unidad con ID ${selectedUnidad.id} no existe`);
+        }
+
+        // Verificar si ya existe una relación con la misma combinación única
+        const relacionExistente = residentesUnidades.find(ru => 
+          ru.id_residente === residenteId && 
+          ru.id_unidad === selectedUnidad.id && 
+          ru.fecha_inicio === relacionData.fecha_inicio
+        );
 
         // Verificar si ya existe una relación como propietario
         const propietarioExistente = residentesUnidades.find(ru => 
@@ -252,12 +296,27 @@ const ListaUnidades = () => {
           ru.estado
         );
 
-        if (propietarioExistente) {
-          // Actualizar relación existente
-          await api.put(`/comunidad/residentes-unidad/${propietarioExistente.id}/`, relacionData);
+        console.log('🔍 Relación existente (unique constraint):', relacionExistente);
+        console.log('🔍 Propietario existente:', propietarioExistente);
+
+        if (relacionExistente) {
+          // Si ya existe una relación con la misma combinación única, actualizarla
+          console.log('🔄 Actualizando relación existente (unique constraint)...');
+          console.log('🔄 URL:', `/residentes-unidad/${relacionExistente.id}/`);
+          console.log('🔄 Datos:', relacionData);
+          await api.put(`/residentes-unidad/${relacionExistente.id}/`, relacionData);
+        } else if (propietarioExistente) {
+          // Si existe otro propietario pero no la misma relación, actualizar el existente
+          console.log('🔄 Cambiando propietario existente...');
+          console.log('🔄 URL:', `/residentes-unidad/${propietarioExistente.id}/`);
+          console.log('🔄 Datos:', relacionData);
+          await api.put(`/residentes-unidad/${propietarioExistente.id}/`, relacionData);
         } else {
           // Crear nueva relación
-          await api.post('/comunidad/residentes-unidad/', relacionData);
+          console.log('➕ Creando nueva relación...');
+          console.log('➕ URL:', '/residentes-unidad/');
+          console.log('➕ Datos:', relacionData);
+          await api.post('/residentes-unidad/', relacionData);
         }
 
         message.success('Propietario asignado exitosamente');
@@ -266,8 +325,32 @@ const ListaUnidades = () => {
       setIsPropietarioModalVisible(false);
       loadData();
     } catch (error) {
-      console.error('Error al asignar propietario:', error);
-      message.error('Error al asignar propietario: ' + (error.response?.data?.detail || error.message));
+      console.error('❌ Error al asignar propietario:', error);
+      console.error('❌ Error response:', error.response);
+      console.error('❌ Error data:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
+      console.error('❌ Error headers:', error.response?.headers);
+      console.error('❌ Error config:', error.config);
+      
+      let errorMessage = 'Error al asignar propietario';
+      if (error.response?.data) {
+        console.error('❌ Error data completo:', JSON.stringify(error.response.data, null, 2));
+        if (typeof error.response.data === 'string') {
+          errorMessage += ': ' + error.response.data;
+        } else if (error.response.data.detail) {
+          errorMessage += ': ' + error.response.data.detail;
+        } else if (error.response.data.error) {
+          errorMessage += ': ' + error.response.data.error;
+        } else if (error.response.data.non_field_errors) {
+          errorMessage += ': ' + error.response.data.non_field_errors.join(', ');
+        } else {
+          errorMessage += ': ' + JSON.stringify(error.response.data);
+        }
+      } else if (error.message) {
+        errorMessage += ': ' + error.message;
+      }
+      
+      message.error(errorMessage);
     }
   };
 
@@ -280,7 +363,7 @@ const ListaUnidades = () => {
       );
 
       if (propietarioExistente) {
-        await api.delete(`/comunidad/residentes-unidad/${propietarioExistente.id}/`);
+        await api.delete(`/residentes-unidad/${propietarioExistente.id}/`);
         message.success('Propietario removido exitosamente');
         setIsPropietarioModalVisible(false);
         loadData();

@@ -5,7 +5,7 @@ export const accesoAPI = {
   // Dashboard de accesos
   getDashboardData: async () => {
     try {
-      const response = await api.get('/acceso/dashboard/');
+      const response = await api.get('/dashboard/');
       return response.data;
     } catch (error) {
       throw error;
@@ -15,7 +15,7 @@ export const accesoAPI = {
   // Registros de acceso
   getRegistrosAcceso: async (params = {}) => {
     try {
-      const response = await api.get('/acceso/registros-acceso/', { params });
+      const response = await api.get('/registros-acceso/', { params });
       return response.data;
     } catch (error) {
       throw error;
@@ -24,7 +24,7 @@ export const accesoAPI = {
 
   registrarAcceso: async (placa, tipo = 'entrada') => {
     try {
-      const response = await api.post('/acceso/registros-acceso/registrar/', {
+      const response = await api.post('/registros-acceso/registrar/', {
         placa: placa,
         tipo: tipo
       });
@@ -37,7 +37,7 @@ export const accesoAPI = {
   // Placas de vehículos (residentes)
   getPlacasVehiculo: async (params = {}) => {
     try {
-      const response = await api.get('/acceso/placas-vehiculo/', { params });
+      const response = await api.get('/placas-vehiculo/', { params });
       return response.data;
     } catch (error) {
       throw error;
@@ -46,7 +46,7 @@ export const accesoAPI = {
 
   createPlacaVehiculo: async (data) => {
     try {
-      const response = await api.post('/acceso/placas-vehiculo/', data);
+      const response = await api.post('/placas-vehiculo/', data);
       return response.data;
     } catch (error) {
       throw error;
@@ -55,7 +55,7 @@ export const accesoAPI = {
 
   updatePlacaVehiculo: async (id, data) => {
     try {
-      const response = await api.put(`/acceso/placas-vehiculo/${id}/`, data);
+      const response = await api.put(`/placas-vehiculo/${id}/`, data);
       return response.data;
     } catch (error) {
       throw error;
@@ -64,7 +64,7 @@ export const accesoAPI = {
 
   deletePlacaVehiculo: async (id) => {
     try {
-      const response = await api.delete(`/acceso/placas-vehiculo/${id}/`);
+      const response = await api.delete(`/placas-vehiculo/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -74,7 +74,7 @@ export const accesoAPI = {
   // Placas de invitados
   getPlacasInvitado: async (params = {}) => {
     try {
-      const response = await api.get('/acceso/placas-invitado/', { params });
+      const response = await api.get('/placas-invitado/', { params });
       return response.data;
     } catch (error) {
       throw error;
@@ -83,7 +83,7 @@ export const accesoAPI = {
 
   createPlacaInvitado: async (data) => {
     try {
-      const response = await api.post('/acceso/placas-invitado/', data);
+      const response = await api.post('/placas-invitado/', data);
       return response.data;
     } catch (error) {
       throw error;
@@ -92,7 +92,7 @@ export const accesoAPI = {
 
   updatePlacaInvitado: async (id, data) => {
     try {
-      const response = await api.put(`/acceso/placas-invitado/${id}/`, data);
+      const response = await api.put(`/placas-invitado/${id}/`, data);
       return response.data;
     } catch (error) {
       throw error;
@@ -101,7 +101,7 @@ export const accesoAPI = {
 
   deletePlacaInvitado: async (id) => {
     try {
-      const response = await api.delete(`/acceso/placas-invitado/${id}/`);
+      const response = await api.delete(`/placas-invitado/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -111,7 +111,7 @@ export const accesoAPI = {
   // Configuración del sistema
   getConfiguracion: async () => {
     try {
-      const response = await api.get('/acceso/configuracion/');
+      const response = await api.get('/configuracion/');
       return response.data;
     } catch (error) {
       throw error;
@@ -120,7 +120,7 @@ export const accesoAPI = {
 
   updateConfiguracion: async (data) => {
     try {
-      const response = await api.put('/acceso/configuracion/', data);
+      const response = await api.put('/configuracion/', data);
       return response.data;
     } catch (error) {
       throw error;
@@ -134,7 +134,7 @@ export const accesoAPI = {
       if (fechaInicio) params.fecha_inicio = fechaInicio;
       if (fechaFin) params.fecha_fin = fechaFin;
 
-      const response = await api.get('/acceso/estadisticas/', { params });
+      const response = await api.get('/estadisticas/', { params });
       return response.data;
     } catch (error) {
       throw error;
@@ -144,7 +144,7 @@ export const accesoAPI = {
   // Simulación de reconocimiento de placas (para testing)
   simularReconocimiento: async (imagenBase64) => {
     try {
-      const response = await api.post('/acceso/simular-reconocimiento/', {
+      const response = await api.post('/simular-reconocimiento/', {
         imagen: imagenBase64
       });
       return response.data;

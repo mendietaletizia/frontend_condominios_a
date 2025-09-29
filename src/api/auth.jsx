@@ -5,7 +5,7 @@ export const authAPI = {
   // Iniciar sesión
   async login(username, password) {
     try {
-      const response = await api.post('/auth/login/', {
+      const response = await api.post('/login/', {
         username,
         password,
       });
@@ -18,7 +18,7 @@ export const authAPI = {
   // Cerrar sesión
   async logout() {
     try {
-      const response = await api.post('/auth/logout/');
+      const response = await api.post('/logout/');
       return response.data;
     } catch (error) {
       throw error;
@@ -28,7 +28,7 @@ export const authAPI = {
   // Obtener información del usuario actual
   async getCurrentUser() {
     try {
-      const response = await api.get('/auth/user/');
+      const response = await api.get('/user/');
       return response.data;
     } catch (error) {
       throw error;
@@ -38,7 +38,7 @@ export const authAPI = {
   // Verificar token
   async verifyToken() {
     try {
-      const response = await api.get('/auth/verify/');
+      const response = await api.get('/verify/');
       return response.data;
     } catch (error) {
       throw error;

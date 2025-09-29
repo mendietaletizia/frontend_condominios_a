@@ -28,9 +28,9 @@ const ListaRoles = () => {
     try {
       setLoading(true);
       const [rolesRes, permisosRes, rolPermisosRes] = await Promise.all([
-        api.get('/usuarios/roles/'),
-        api.get('/usuarios/permiso/'),
-        api.get('/usuarios/rol-permiso/')
+        api.get('/roles/'),
+        api.get('/permiso/'),
+        api.get('/rol-permiso/')
       ]);
       const rolesList = Array.isArray(rolesRes.data) ? rolesRes.data : (Array.isArray(rolesRes.data?.results) ? rolesRes.data.results : []);
       const permisosList = Array.isArray(permisosRes.data) ? permisosRes.data : (Array.isArray(permisosRes.data?.results) ? permisosRes.data.results : []);

@@ -59,7 +59,7 @@ const GestionCuotasFixed = () => {
       const [cuotasMensualesData, cuotasUnidadData, unidadesRes] = await Promise.all([
         finanzasAPI.getCuotasMensuales(),
         finanzasAPI.getCuotasUnidad(),
-        api.get('/comunidad/unidades/')
+        api.get('/unidades/')
       ]);
 
       // Usar los mismos datos para cuotas y expensas (diferentes propósitos)

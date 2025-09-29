@@ -1,0 +1,204 @@
+.gestion-ingresos {
+  padding: 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: #1890ff;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.page-header h1 .anticon {
+  margin-right: 8px;
+}
+
+.estadisticas-container {
+  margin-bottom: 24px;
+}
+
+.estadistica-card {
+  text-align: center;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.estadistica-card .ant-statistic-title {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.estadistica-card .ant-statistic-content {
+  color: #1890ff;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.filtros-container {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.filtros-container .ant-row {
+  align-items: center;
+}
+
+.tabla-ingresos {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tabla-ingresos .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+  color: #333;
+}
+
+.tabla-ingresos .ant-table-tbody > tr:hover > td {
+  background: #f5f5f5;
+}
+
+.acciones-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.acciones-buttons .ant-btn {
+  border-radius: 4px;
+}
+
+.estado-tag {
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.tipo-tag {
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.modal-ingreso .ant-modal-header {
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-ingreso .ant-modal-title {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.modal-ingreso .ant-form-item-label > label {
+  font-weight: 500;
+  color: #333;
+}
+
+.modal-ingreso .ant-input,
+.modal-ingreso .ant-select-selector,
+.modal-ingreso .ant-picker {
+  border-radius: 6px;
+}
+
+.modal-ingreso .ant-btn {
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .gestion-ingresos {
+    padding: 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .page-header h1 {
+    font-size: 20px;
+  }
+  
+  .estadisticas-container .ant-col {
+    margin-bottom: 16px;
+  }
+  
+  .filtros-container .ant-col {
+    margin-bottom: 16px;
+  }
+  
+  .acciones-buttons {
+    flex-direction: column;
+  }
+  
+  .acciones-buttons .ant-btn {
+    width: 100%;
+  }
+}
+
+/* Animaciones */
+.estadistica-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.estadistica-card:hover {
+  transform: translateY(-2px);
+}
+
+.tabla-ingresos .ant-table-tbody > tr {
+  transition: background-color 0.2s ease-in-out;
+}
+
+/* Estados de carga */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.loading-container .ant-spin {
+  font-size: 24px;
+}
+
+/* Mensajes de estado */
+.message-success {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  color: #52c41a;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.message-error {
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #ff4d4f;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.message-warning {
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  color: #faad14;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}

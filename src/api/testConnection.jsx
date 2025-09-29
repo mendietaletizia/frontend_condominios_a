@@ -21,12 +21,12 @@ export const testConnection = async () => {
 export const testEndpoints = async () => {
   
   const endpoints = [
-    '/auth/login/',
-    '/usuarios/usuario/',
-    '/usuarios/persona/',
-  '/comunidad/unidades/',
-    '/economia/gastos/',
-    '/finanzas/pago/'
+    '/login/',
+    '/usuario/',
+    '/persona/',
+  '/unidades/',
+    '/gastos/',
+    '/pagos/'
   ];
   
   for (const endpoint of endpoints) {

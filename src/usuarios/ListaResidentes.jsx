@@ -76,8 +76,8 @@ const ListaResidentes = () => {
 
       // Traer datos básicos usando la nueva API mejorada
       const [residentesRes, unidadesRes] = await Promise.all([
-        api.get('/usuarios/residentes/'),
-        api.get('/comunidad/unidades/')
+        api.get('/residentes/'),
+        api.get('/unidades/')
       ]);
 
       // Manejar formato de respuesta de Django REST Framework
@@ -187,7 +187,7 @@ const ListaResidentes = () => {
         personaData.telefono = values.telefono.trim();
       }
       
-      const personaRes = await api.post('/usuarios/persona/', personaData);
+      const personaRes = await api.post('/persona/', personaData);
       const personaId = personaRes.data.id;
 
       // 2. Crear residente
@@ -197,7 +197,7 @@ const ListaResidentes = () => {
         usuario_asociado: values.usuario_asociado || null
       };
       
-      const residenteRes = await api.post('/usuarios/residentes/', residenteData);
+      const residenteRes = await api.post('/residentes/', residenteData);
       const residenteId = residenteRes.data.id;
 
       // 3. Crear relación con unidad si se especificó
@@ -226,7 +226,7 @@ const ListaResidentes = () => {
     };
     
     console.log('🏠 Creando relación unidad:', relacionData);
-    await api.post('/comunidad/residentes-unidad/', relacionData);
+    await api.post('/residentes-unidad/', relacionData);
     console.log('✅ Relación unidad creada');
   };
 
@@ -243,7 +243,7 @@ const ListaResidentes = () => {
       await updatePersona(editingResidente.persona_id, values);
       
       // 2. Actualizar residente
-      await api.put(`/usuarios/residentes/${editingResidente.id}/`, {
+      await api.put(`/residentes/${editingResidente.id}/`, {
         persona: editingResidente.persona_id,
         usuario: editingResidente.usuario,
         usuario_asociado: values.usuario_asociado || null
@@ -277,11 +277,11 @@ const ListaResidentes = () => {
     
     if (!personaId) {
       // Crear nueva persona
-      const personaRes = await api.post('/usuarios/persona/', personaData);
+      const personaRes = await api.post('/persona/', personaData);
       return personaRes.data.id;
     } else {
       // Actualizar persona existente
-      await api.put(`/usuarios/persona/${personaId}/`, personaData);
+      await api.put(`/persona/${personaId}/`, personaData);
       return personaId;
     }
   };
@@ -298,14 +298,14 @@ const ListaResidentes = () => {
       
       if (residente.rel_id && residente.tiene_relacion_unidad) {
         // Actualizar relación existente
-        await api.put(`/comunidad/residentes-unidad/${residente.rel_id}/`, relacionData);
+        await api.put(`/residentes-unidad/${residente.rel_id}/`, relacionData);
       } else {
         // Crear nueva relación
-        await api.post('/comunidad/residentes-unidad/', relacionData);
+        await api.post('/residentes-unidad/', relacionData);
       }
     } else if (residente.rel_id && residente.tiene_relacion_unidad) {
       // Eliminar relación si no se especifica unidad
-      await api.delete(`/comunidad/residentes-unidad/${residente.rel_id}/`);
+      await api.delete(`/residentes-unidad/${residente.rel_id}/`);
     }
   };
 
@@ -320,7 +320,7 @@ const ListaResidentes = () => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          await api.delete(`/usuarios/residentes/${id}/`);
+          await api.delete(`/residentes/${id}/`);
           message.success('Residente eliminado exitosamente');
           await loadUsuariosResidentes();
           await loadData();
