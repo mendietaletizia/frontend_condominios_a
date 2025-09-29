@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Card, Table, Button, Space, Tag, Modal, message, Statistic, Row, Col, Alert, Spin } from 'antd';
 import { 
-  DollarOutlined, CalendarOutlined, HomeOutlined, 
+  MoneyCollectOutlined, CalendarOutlined, HomeOutlined, 
   CheckCircleOutlined, AlertOutlined, ExclamationCircleOutlined,
   CreditCardOutlined, EyeOutlined
 } from '@ant-design/icons';
@@ -30,8 +30,8 @@ const MisCuotas = () => {
       setError('');
       
       const [pendientesRes, pagadasRes] = await Promise.all([
-        api.get('/finanzas/cuotas-residente/mis_cuotas_pendientes/'),
-        api.get('/finanzas/cuotas-residente/mis_cuotas_pagadas/')
+        api.get('/cuotas-residente/mis_cuotas_pendientes/'),
+        api.get('/cuotas-residente/mis_cuotas_pagadas/')
       ]);
       
       setCuotasPendientes(pendientesRes.data || []);
@@ -48,7 +48,7 @@ const MisCuotas = () => {
     try {
       setPagoLoading(prev => ({ ...prev, [cuota.id]: true }));
       
-      const response = await api.post(`/finanzas/cuotas-residente/${cuota.id}/pagar_online/`);
+      const response = await api.post(`/cuotas-residente/${cuota.id}/pagar_online/`);
       
       if (response.data.payment_url) {
         // Redirigir a la pasarela de pago
@@ -382,7 +382,7 @@ const MisCuotas = () => {
               value={estadisticas.montoPendiente}
               precision={2}
               valueStyle={{ color: '#ff4d4f' }}
-              prefix={<DollarOutlined />}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
             />
           </Card>
         </Col>
@@ -393,7 +393,7 @@ const MisCuotas = () => {
               value={estadisticas.montoPagado}
               precision={2}
               valueStyle={{ color: '#52c41a' }}
-              prefix={<DollarOutlined />}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
             />
           </Card>
         </Col>

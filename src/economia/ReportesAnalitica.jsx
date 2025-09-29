@@ -8,7 +8,7 @@ import {
   PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, 
   BarChartOutlined, LineChartOutlined, PieChartOutlined,
   DownloadOutlined, FileTextOutlined, CalculatorOutlined,
-  TrendingUpOutlined, DollarOutlined, WarningOutlined,
+  RiseOutlined, MoneyCollectOutlined, WarningOutlined,
   CheckCircleOutlined, ClockCircleOutlined, ExclamationCircleOutlined
 } from '@ant-design/icons';
 import api from '../api/config';
@@ -219,7 +219,7 @@ const ReportesAnalitica = () => {
           color: parseFloat(monto) >= 0 ? '#52c41a' : '#ff4d4f',
           fontWeight: 'bold'
         }}>
-          ${parseFloat(monto).toLocaleString()}
+          Bs. {parseFloat(monto).toLocaleString()}
         </span>
       ),
       sorter: (a, b) => parseFloat(a.saldo_neto) - parseFloat(b.saldo_neto),
@@ -436,7 +436,7 @@ const ReportesAnalitica = () => {
         <h2><LineChartOutlined /> Dashboard Financiero</h2>
         <Button 
           type="primary" 
-          icon={<TrendingUpOutlined />}
+          icon={<RiseOutlined />}
           onClick={cargarDatos}
         >
           Actualizar Datos
@@ -450,7 +450,7 @@ const ReportesAnalitica = () => {
             <Statistic
               title="Total Ingresos"
               value={resumenFinanciero.total_ingresos || 0}
-              prefix={<DollarOutlined />}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
               precision={2}
               valueStyle={{ color: '#52c41a' }}
             />
@@ -459,7 +459,7 @@ const ReportesAnalitica = () => {
             <Statistic
               title="Total Gastos"
               value={resumenFinanciero.total_gastos || 0}
-              prefix={<DollarOutlined />}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
               precision={2}
               valueStyle={{ color: '#ff4d4f' }}
             />
@@ -468,7 +468,7 @@ const ReportesAnalitica = () => {
             <Statistic
               title="Saldo Neto"
               value={resumenFinanciero.saldo_neto || 0}
-              prefix={<DollarOutlined />}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
               precision={2}
               valueStyle={{ 
                 color: (resumenFinanciero.saldo_neto || 0) >= 0 ? '#52c41a' : '#ff4d4f' 
@@ -494,7 +494,7 @@ const ReportesAnalitica = () => {
             <Statistic
               title="Total en Morosidad"
               value={analisisMorosidad.total_morosidad || 0}
-              prefix={<DollarOutlined />}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
               precision={2}
               valueStyle={{ color: '#ff4d4f' }}
             />

@@ -41,7 +41,7 @@ export const testEndpoints = async () => {
 export const testLogin = async (username = 'jael', password = 'password123') => {
   
   try {
-    const response = await api.post('/auth/login/', { username, password });
+    const response = await api.post('/login/', { username, password });
     return response.data;
   } catch (error) {
     return null;

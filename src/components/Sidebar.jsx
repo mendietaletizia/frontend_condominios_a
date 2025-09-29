@@ -51,7 +51,6 @@ const Sidebar = ({ isOpen, onToggle }) => {
         icon: '💰',
         cases: [
           { id: 'cu18-gestion', label: 'CU18 - Gestión de Ingresos', path: '/gestion-ingresos', implemented: true, roles: ['administrador'] },
-          { id: 'cu18-estadisticas', label: 'CU18 - Estadísticas de Ingresos', path: '/estadisticas-ingresos', implemented: true, roles: ['administrador'] },
           { id: 'cu18-reportes', label: 'CU18 - Reportes Financieros', path: '/reportes-financieros', implemented: false, roles: ['administrador'] },
           { id: 'cu21', label: 'CU21 - Gestión de Presupuestos', path: '/presupuestos', implemented: false, roles: ['administrador'] },
           { id: 'cu22', label: 'CU22 - Gestión de Cuotas y Expensas', path: '/cuotas', implemented: true, roles: ['administrador'] }

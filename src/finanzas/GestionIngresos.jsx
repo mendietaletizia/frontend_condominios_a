@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, DatePicker, Upload, Row, Col, Statistic, Progress, Divider } from 'antd';
 import { 
   PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, 
-  DollarOutlined, TrendingUpOutlined, BarChartOutlined, 
+  MoneyCollectOutlined, RiseOutlined, BarChartOutlined, 
   CheckCircleOutlined, CloseCircleOutlined, FileTextOutlined,
   UploadOutlined, DownloadOutlined, FilterOutlined
 } from '@ant-design/icons';
@@ -29,7 +29,6 @@ const GestionIngresos = () => {
 
   useEffect(() => {
     cargarIngresos();
-    cargarEstadisticas();
   }, [filters]);
 
   const cargarIngresos = async () => {
@@ -50,14 +49,7 @@ const GestionIngresos = () => {
     }
   };
 
-  const cargarEstadisticas = async () => {
-    try {
-      const response = await api.get('/ingresos/estadisticas/');
-      setEstadisticas(response.data);
-    } catch (error) {
-      console.error('Error cargando estadísticas:', error);
-    }
-  };
+  
 
   const handleSubmit = async (values) => {
     try {
@@ -78,7 +70,6 @@ const GestionIngresos = () => {
       form.resetFields();
       setEditingIngreso(null);
       cargarIngresos();
-      cargarEstadisticas();
     } catch (error) {
       console.error('Error guardando ingreso:', error);
       message.error('Error al guardar ingreso: ' + (error.response?.data?.detail || error.message));
@@ -106,7 +97,6 @@ const GestionIngresos = () => {
           await api.delete(`/ingresos/${id}/`);
           message.success('Ingreso eliminado exitosamente');
           cargarIngresos();
-          cargarEstadisticas();
         } catch (error) {
           console.error('Error eliminando ingreso:', error);
           message.error('Error al eliminar ingreso');
@@ -120,7 +110,6 @@ const GestionIngresos = () => {
       await api.post('/ingresos/confirmar_ingreso/', { ingreso_id: id });
       message.success('Ingreso confirmado exitosamente');
       cargarIngresos();
-      cargarEstadisticas();
     } catch (error) {
       console.error('Error confirmando ingreso:', error);
       message.error('Error al confirmar ingreso');
@@ -146,7 +135,6 @@ const GestionIngresos = () => {
           });
           message.success('Ingreso cancelado exitosamente');
           cargarIngresos();
-          cargarEstadisticas();
           close();
         } catch (error) {
           console.error('Error cancelando ingreso:', error);
@@ -183,7 +171,7 @@ const GestionIngresos = () => {
       title: 'Monto',
       dataIndex: 'monto',
       key: 'monto',
-      render: (monto) => `$${parseFloat(monto).toLocaleString()}`,
+      render: (monto) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(parseFloat(monto)),
       sorter: (a, b) => parseFloat(a.monto) - parseFloat(b.monto),
     },
     {
@@ -279,7 +267,7 @@ const GestionIngresos = () => {
   return (
     <div className="gestion-ingresos">
       <div className="page-header">
-        <h1><DollarOutlined /> Gestión de Ingresos</h1>
+        <h1><MoneyCollectOutlined /> Gestión de Ingresos</h1>
         <Button 
           type="primary" 
           icon={<PlusOutlined />}
@@ -296,8 +284,8 @@ const GestionIngresos = () => {
             <Statistic
               title="Ingresos del Mes"
               value={estadisticas.total_ingresos_mes || 0}
-              prefix="$"
               precision={2}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
             />
           </Card>
         </Col>
@@ -306,8 +294,8 @@ const GestionIngresos = () => {
             <Statistic
               title="Ingresos del Año"
               value={estadisticas.total_ingresos_año || 0}
-              prefix="$"
               precision={2}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
             />
           </Card>
         </Col>
@@ -316,8 +304,8 @@ const GestionIngresos = () => {
             <Statistic
               title="Promedio Mensual"
               value={estadisticas.promedio_mensual || 0}
-              prefix="$"
               precision={2}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
             />
           </Card>
         </Col>

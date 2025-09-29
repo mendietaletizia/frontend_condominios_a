@@ -78,7 +78,7 @@ export const apiUtils = {
   // Obtener información del usuario actual
   async getCurrentUser() {
     try {
-      const response = await api.get('/auth/user/');
+      const response = await api.get('/user/');
       return response.data;
     } catch (error) {
       throw error;

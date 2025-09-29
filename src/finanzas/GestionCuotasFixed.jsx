@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Tooltip, Statistic, Row, Col, DatePicker, InputNumber, Divider, Radio } from 'antd';
 import { 
   PlusOutlined, EditOutlined, DeleteOutlined, 
-  DollarOutlined, CalendarOutlined, UserOutlined, HomeOutlined,
+  MoneyCollectOutlined, CalendarOutlined, UserOutlined, HomeOutlined,
   CalculatorOutlined, AlertOutlined, CheckCircleOutlined, ExclamationCircleOutlined,
   CreditCardOutlined, EyeOutlined
 } from '@ant-design/icons';
@@ -175,7 +175,7 @@ const GestionCuotasFixed = () => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          await api.delete(`/finanzas/cuotas-unidad/${cuotaUnidad.id}/eliminar_cuota/`);
+          await api.delete(`/cuotas-unidad/${cuotaUnidad.id}/eliminar_cuota/`);
           message.success('Cuota eliminada exitosamente');
           loadData();
         } catch (error) {
@@ -318,7 +318,7 @@ const GestionCuotasFixed = () => {
             <Button
               type="primary"
               size="small"
-              icon={<DollarOutlined />}
+              icon={<MoneyCollectOutlined />}
               onClick={() => handleRegistrarPago(record)}
               disabled={record.estado === 'pagada'}
             >
@@ -549,7 +549,7 @@ const GestionCuotasFixed = () => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          await api.delete(`/finanzas/cuotas-mensuales/${expensaMensual.id}/eliminar_cuota_mensual/`);
+          await api.delete(`/cuotas-mensuales/${expensaMensual.id}/eliminar_cuota_mensual/`);
           message.success('Expensa mensual eliminada exitosamente');
           loadData();
         } catch (error) {
@@ -747,7 +747,7 @@ const GestionCuotasFixed = () => {
         <Col span={3}>
           <Card>
             <Statistic
-              title="Cuotas Mensuales"
+              title="Cuotas"
               value={estadisticas.totalCuotasMensuales}
               prefix={<HomeOutlined />}
             />
@@ -756,7 +756,7 @@ const GestionCuotasFixed = () => {
         <Col span={3}>
           <Card>
             <Statistic
-              title="Expensas Mensuales"
+              title="Expensas"
               value={estadisticas.totalExpensasMensuales}
               prefix={<CalculatorOutlined />}
             />
@@ -811,7 +811,7 @@ const GestionCuotasFixed = () => {
               title="Monto Total"
               value={estadisticas.montoTotal}
               precision={2}
-              prefix={<DollarOutlined />}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
               valueStyle={{ color: '#1890ff' }}
             />
           </Card>
@@ -822,7 +822,7 @@ const GestionCuotasFixed = () => {
               title="Monto Cobrado"
               value={estadisticas.montoCobrado}
               precision={2}
-              prefix={<DollarOutlined />}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
               valueStyle={{ color: '#3f8600' }}
             />
           </Card>
@@ -833,7 +833,7 @@ const GestionCuotasFixed = () => {
               title="Monto Pendiente"
               value={estadisticas.montoPendiente}
               precision={2}
-              prefix={<DollarOutlined />}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
               valueStyle={{ color: '#cf1322' }}
             />
           </Card>

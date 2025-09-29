@@ -23,7 +23,6 @@ import ReportesAnalitica from '../economia/ReportesAnalitica';
 import GestionCuotasFixed from '../finanzas/GestionCuotasFixed';
 import MisCuotas from '../finanzas/MisCuotas';
 import GestionIngresos from '../finanzas/GestionIngresos';
-import EstadisticasIngresos from '../finanzas/EstadisticasIngresos';
 import DashboardAcceso from '../acceso/DashboardAcceso';
 import DashboardInvitados from '../invitados/DashboardInvitados';
 import Layout from '../components/Layout';
@@ -204,14 +203,7 @@ const AppRouter = () => {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="estadisticas-ingresos" 
-            element={
-              <ProtectedRoute requiredRoles={['administrador']}>
-                <EstadisticasIngresos />
-              </ProtectedRoute>
-            } 
-          />
+          
           <Route 
             path="reportes-financieros" 
             element={

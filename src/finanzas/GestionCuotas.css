@@ -63,11 +63,11 @@
 }
 
 .stats-row {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .metrics-row {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .metrics-card {
@@ -124,6 +124,7 @@
   border: 1px solid #e1e5e9;
   transition: all 0.3s ease;
   padding: 16px;
+  margin-bottom: 16px;
 }
 
 /* Hover solo para tarjetas principales, no para botones */
@@ -138,6 +139,7 @@
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid #e1e5e9;
+  margin-bottom: 16px;
 }
 
 .ant-table-thead > tr > th {

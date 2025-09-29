@@ -44,9 +44,9 @@ const ListaMultas = () => {
     e.preventDefault();
     try {
       if (editingMulta) {
-        await api.put(`/economia/multa/${editingMulta.id}/`, formData);
+        await api.put(`/multa/${editingMulta.id}/`, formData);
       } else {
-        await api.post('/economia/multa/', formData);
+        await api.post('/multa/', formData);
       }
       setShowForm(false);
       setEditingMulta(null);
@@ -76,7 +76,7 @@ const ListaMultas = () => {
   const handleDelete = async (id) => {
     if (window.confirm('¿Está seguro que desea eliminar esta multa?')) {
       try {
-        await api.delete(`/economia/multa/${id}/`);
+        await api.delete(`/multa/${id}/`);
         loadData();
       } catch (error) {
         setError('Error al eliminar multa: ' + (error.response?.data?.detail || error.message));

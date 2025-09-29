@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Card, Table, Button, Space, Tag, Modal, Form, Input, Select, message, Tooltip, Badge, Statistic, Row, Col, DatePicker, InputNumber, Divider, Radio } from 'antd';
 import { 
   PlusOutlined, EditOutlined, DeleteOutlined, 
-  DollarOutlined, CalendarOutlined, UserOutlined, HomeOutlined,
+  MoneyCollectOutlined, CalendarOutlined, UserOutlined, HomeOutlined,
   CalculatorOutlined, AlertOutlined, CheckCircleOutlined, ExclamationCircleOutlined,
   CreditCardOutlined, EyeOutlined
 } from '@ant-design/icons';
@@ -210,7 +210,7 @@ const GestionCuotas = () => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          await api.delete(`/finanzas/cuotas-unidad/${cuotaUnidad.id}/eliminar_cuota/`);
+          await api.delete(`/cuotas-unidad/${cuotaUnidad.id}/eliminar_cuota/`);
           message.success('Cuota eliminada exitosamente');
           loadData();
         } catch (error) {
@@ -246,7 +246,7 @@ const GestionCuotas = () => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          await api.delete(`/finanzas/cuotas-mensuales/${expensaMensual.id}/eliminar_cuota_mensual/`);
+          await api.delete(`/cuotas-mensuales/${expensaMensual.id}/eliminar_cuota_mensual/`);
           message.success('Expensa mensual eliminada exitosamente');
           loadData();
         } catch (error) {
@@ -280,7 +280,7 @@ const GestionCuotas = () => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          await api.delete(`/finanzas/cuotas-unidad/${expensa.id}/eliminar_cuota/`);
+          await api.delete(`/cuotas-unidad/${expensa.id}/eliminar_cuota/`);
           message.success('Expensa eliminada exitosamente');
           loadData();
         } catch (error) {
@@ -317,7 +317,7 @@ const GestionCuotas = () => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          await api.delete(`/finanzas/cuotas-mensuales/${cuotaMensual.id}/eliminar_cuota_mensual/`);
+          await api.delete(`/cuotas-mensuales/${cuotaMensual.id}/eliminar_cuota_mensual/`);
           message.success(`Cuota mensual y ${cuotasCount} cuotas individuales eliminadas exitosamente`);
           loadData();
         } catch (error) {
@@ -426,7 +426,7 @@ const GestionCuotas = () => {
             <Button
               type="primary"
               size="small"
-              icon={<DollarOutlined />}
+              icon={<MoneyCollectOutlined />}
               onClick={() => handleRegistrarPago(record)}
               disabled={record.estado === 'pagada'}
             >
@@ -770,7 +770,7 @@ const GestionCuotas = () => {
             <Button
               type="primary"
               size="small"
-              icon={<DollarOutlined />}
+              icon={<MoneyCollectOutlined />}
               onClick={() => handleRegistrarPago(record)}
               disabled={record.estado === 'pagada'}
             >
@@ -1023,7 +1023,7 @@ const GestionCuotas = () => {
               title="Monto Total"
               value={estadisticas.montoTotal}
               precision={2}
-              prefix={<DollarOutlined />}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
               valueStyle={{ color: '#1890ff' }}
             />
           </Card>
@@ -1034,7 +1034,7 @@ const GestionCuotas = () => {
               title="Monto Cobrado"
               value={estadisticas.montoCobrado}
               precision={2}
-              prefix={<DollarOutlined />}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
               valueStyle={{ color: '#3f8600' }}
             />
           </Card>
@@ -1045,7 +1045,7 @@ const GestionCuotas = () => {
               title="Monto Pendiente"
               value={estadisticas.montoPendiente}
               precision={2}
-              prefix={<DollarOutlined />}
+              formatter={(value) => new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(value)}
               valueStyle={{ color: '#cf1322' }}
             />
           </Card>

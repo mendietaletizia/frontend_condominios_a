@@ -25,7 +25,7 @@ const ListaGastos = () => {
   const loadGastos = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/economia/gastos/');
+      const response = await api.get('/gastos/');
       setGastos(response.data);
     } catch (error) {
       setError('Error al cargar gastos: ' + (error.response?.data?.detail || error.message));
@@ -38,9 +38,9 @@ const ListaGastos = () => {
     e.preventDefault();
     try {
       if (editingGasto) {
-        await api.put(`/economia/gastos/${editingGasto.id}/`, formData);
+        await api.put(`/gastos/${editingGasto.id}/`, formData);
       } else {
-        await api.post('/economia/gastos/', formData);
+        await api.post('/gastos/', formData);
       }
       setShowForm(false);
       setEditingGasto(null);
@@ -68,7 +68,7 @@ const ListaGastos = () => {
   const handleDelete = async (id) => {
     if (window.confirm('¿Está seguro que desea eliminar este gasto?')) {
       try {
-        await api.delete(`/economia/gastos/${id}/`);
+        await api.delete(`/gastos/${id}/`);
         loadGastos();
       } catch (error) {
         setError('Error al eliminar gasto: ' + (error.response?.data?.detail || error.message));
