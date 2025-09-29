@@ -1,89 +1,64 @@
 import api from './config';
 
-// API para el sistema de gestión de invitados
+// API para el sistema de gestión de invitados (modelo Invitado)
 export const invitadosAPI = {
-  // Placas de invitados
-  getPlacasInvitado: async (params = {}) => {
-    try {
-      const response = await api.get('/placas-invitados/', { params });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  // Invitados CRUD
+  list: async (params = {}) => {
+    const response = await api.get('/invitados/', { params });
+    return response.data;
   },
 
-  createPlacaInvitado: async (data) => {
-    try {
-      const response = await api.post('/placas-invitados/', data);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  create: async (data) => {
+    const response = await api.post('/invitados/', data);
+    return response.data;
   },
 
-  updatePlacaInvitado: async (id, data) => {
-    try {
-      const response = await api.put(`/placas-invitados/${id}/`, data);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  update: async (id, data) => {
+    const response = await api.put(`/invitados/${id}/`, data);
+    return response.data;
   },
 
-  deletePlacaInvitado: async (id) => {
-    try {
-      const response = await api.delete(`/placas-invitados/${id}/`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  remove: async (id) => {
+    const response = await api.delete(`/invitados/${id}/`);
+    return response.data;
   },
 
-  // Placas de invitados activas (para seguridad)
-  getPlacasInvitadoActivas: async () => {
-    try {
-      const response = await api.get('/placas-invitados/activas/');
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  // Scopes y filtros
+  activos: async (params = {}) => {
+    const response = await api.get('/invitados/activos/', { params });
+    return response.data;
   },
 
-  // Placas de invitados por residente
-  getPlacasInvitadoPorResidente: async (residenteId) => {
-    try {
-      const response = await api.get('/placas-invitados/', {
-        params: { residente_id: residenteId }
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  porEvento: async (eventoId) => {
+    const response = await api.get('/invitados/por_evento/', { params: { evento_id: eventoId } });
+    return response.data;
   },
 
-  // Buscar placas de invitados por placa
-  buscarPlacaInvitado: async (placa) => {
-    try {
-      const response = await api.get('/placas-invitados/', {
-        params: { placa }
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+  enCondominio: async () => {
+    const response = await api.get('/invitados/en_condominio/');
+    return response.data; // { conteo, invitados }
   },
 
-  // Verificar si una placa está autorizada
-  verificarPlacaAutorizada: async (placa) => {
-    try {
-      const response = await api.get('/placas-invitados/', {
-        params: { placa, activo: true }
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  }
+  seguridadHoy: async () => {
+    const response = await api.get('/invitados/seguridad/hoy/');
+    return response.data;
+  },
+
+  seguridadResumen: async () => {
+    const response = await api.get('/invitados/seguridad/resumen/');
+    return response.data; // { fecha, totales, proximos }
+  },
+
+  // Acciones de portería/seguridad
+  checkIn: async (id) => {
+    const response = await api.post(`/invitados/${id}/check_in/`);
+    return response.data;
+  },
+
+  checkOut: async (id) => {
+    const response = await api.post(`/invitados/${id}/check_out/`);
+    return response.data;
+  },
 };
 
 export default invitadosAPI;

@@ -4,6 +4,7 @@ import { HomeOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ExclamationCi
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/config';
 import { usuariosAPI } from '../api/usuarios';
+import GestionVehiculos from './GestionVehiculos';
 import './ListaUnidades.css';
 
 const { Option } = Select;
@@ -16,6 +17,7 @@ const ListaUnidades = () => {
   const [residentesUnidades, setResidentesUnidades] = useState([]);
   const [mascotas, setMascotas] = useState([]);
   const [vehiculos, setVehiculos] = useState([]);
+  const [detalleUnidad, setDetalleUnidad] = useState(null);
   const [residentes, setResidentes] = useState([]);
   const [usuariosResidentes, setUsuariosResidentes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +25,7 @@ const ListaUnidades = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [isPropietarioModalVisible, setIsPropietarioModalVisible] = useState(false);
+  const [isVehiculosModalVisible, setIsVehiculosModalVisible] = useState(false);
   const [selectedUnidad, setSelectedUnidad] = useState(null);
   const [editingUnidad, setEditingUnidad] = useState(null);
   const [form] = Form.useForm();
@@ -182,9 +185,22 @@ const ListaUnidades = () => {
     return vehiculos.filter(v => v.unidad === unidadId && v.activo);
   };
 
-  const showDetailsModal = (unidad) => {
+  const showDetailsModal = async (unidad) => {
+    try {
+      setSelectedUnidad(unidad);
+      setIsDetailsModalVisible(true);
+      // Cargar detalle completo (vehículos e invitados del día)
+      const res = await api.get(`/unidades/${unidad.id}/detalle_completo/`);
+      setDetalleUnidad(res.data || null);
+    } catch (err) {
+      console.error('Error cargando detalle de unidad:', err);
+      setDetalleUnidad(null);
+    }
+  };
+
+  const showVehiculosModal = (unidad) => {
     setSelectedUnidad(unidad);
-    setIsDetailsModalVisible(true);
+    setIsVehiculosModalVisible(true);
   };
 
   const showPropietarioModal = (unidad) => {
@@ -515,6 +531,17 @@ const ListaUnidades = () => {
               style={{ padding: '4px 6px', fontSize: '11px', color: '#52c41a' }}
             >
               Propietario
+            </Button>
+          </Tooltip>
+          <Tooltip title="Gestionar vehículos">
+            <Button
+              type="link"
+              icon={<CarOutlined />}
+              onClick={() => showVehiculosModal(record)}
+              size="small"
+              style={{ padding: '4px 6px', fontSize: '11px', color: '#1890ff' }}
+            >
+              Vehículos
             </Button>
           </Tooltip>
           <Button
@@ -871,20 +898,93 @@ const ListaUnidades = () => {
                 )}
               </Panel>
 
-              {/* Vehículos - Por implementar */}
+              {/* Vehículos */}
               <Panel 
                 header={
                   <Space>
                     <CarOutlined />
-                    <span>Vehículos (0)</span>
+                    <span>Vehículos ({Array.isArray(detalleUnidad?.vehiculos) ? detalleUnidad.vehiculos.length : 0})</span>
                   </Space>
                 } 
                 key="vehiculos"
               >
-                <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
-                  <CarOutlined style={{ fontSize: '24px', marginBottom: '8px' }} />
-                  <p>Funcionalidad de vehículos por implementar</p>
-                </div>
+                {Array.isArray(detalleUnidad?.vehiculos) && detalleUnidad.vehiculos.length > 0 ? (
+                  <List
+                    dataSource={detalleUnidad.vehiculos}
+                    renderItem={(vehiculo) => (
+                      <List.Item>
+                        <List.Item.Meta
+                          avatar={<Avatar icon={<CarOutlined />} style={{ backgroundColor: '#1890ff' }} />}
+                          title={vehiculo.placa}
+                          description={
+                            <Space direction="vertical" size="small">
+                              <Space>
+                                <Tag color="blue">{vehiculo.marca}</Tag>
+                                <Tag color="green">{vehiculo.modelo}</Tag>
+                                <Tag color="orange">{vehiculo.color}</Tag>
+                              </Space>
+                              <span style={{ fontSize: '12px', color: '#666' }}>
+                                Dueño: {vehiculo.residente_nombre || 'No especificado'}
+                              </span>
+                            </Space>
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+                    <CarOutlined style={{ fontSize: '24px', marginBottom: '8px' }} />
+                    <p>No hay vehículos registrados</p>
+                  </div>
+                )}
+              </Panel>
+
+              {/* Invitados de Hoy */}
+              <Panel 
+                header={
+                  <Space>
+                    <TeamOutlined />
+                    <span>Invitados de Hoy ({Array.isArray(detalleUnidad?.invitados_hoy) ? detalleUnidad.invitados_hoy.length : 0})</span>
+                  </Space>
+                } 
+                key="invitados_hoy"
+              >
+                {Array.isArray(detalleUnidad?.invitados_hoy) && detalleUnidad.invitados_hoy.length > 0 ? (
+                  <List
+                    dataSource={detalleUnidad.invitados_hoy}
+                    renderItem={(inv) => (
+                      <List.Item>
+                        <List.Item.Meta
+                          avatar={<Avatar icon={<UserOutlined />} />}
+                          title={
+                            <Space>
+                              <span>{inv.nombre}</span>
+                              <Tag color={inv.tipo === 'evento' ? 'purple' : 'green'}>{inv.tipo}</Tag>
+                              {inv.vehiculo_placa && <Tag color="blue">{inv.vehiculo_placa}</Tag>}
+                            </Space>
+                          }
+                          description={
+                            <Space direction="vertical" size="small">
+                              <span style={{ fontSize: '12px', color: '#666' }}>
+                                Residente: {inv.residente?.nombre}
+                              </span>
+                              <span style={{ fontSize: '12px', color: '#666' }}>
+                                Inicio: {new Date(inv.fecha_inicio).toLocaleTimeString('es-BO')}
+                                {inv.fecha_fin ? ` · Fin: ${new Date(inv.fecha_fin).toLocaleTimeString('es-BO')}` : ''}
+                              </span>
+                            </Space>
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+                    <UserOutlined style={{ fontSize: '24px', marginBottom: '8px' }} />
+                    <p>No hay invitados registrados para hoy</p>
+                  </div>
+                )}
               </Panel>
             </Collapse>
           </div>
@@ -949,6 +1049,28 @@ const ListaUnidades = () => {
             </Space>
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Modal para gestión de vehículos */}
+      <Modal
+        title={
+          <Space>
+            <CarOutlined />
+            Gestión de Vehículos - Unidad {selectedUnidad?.numero_casa}
+          </Space>
+        }
+        open={isVehiculosModalVisible}
+        onCancel={() => setIsVehiculosModalVisible(false)}
+        footer={null}
+        width={1200}
+        style={{ top: 20 }}
+      >
+        {selectedUnidad && (
+          <GestionVehiculos 
+            unidadId={selectedUnidad.id} 
+            unidadNumero={selectedUnidad.numero_casa}
+          />
+        )}
       </Modal>
 
     </div>
