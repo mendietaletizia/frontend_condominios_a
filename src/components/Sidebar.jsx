@@ -35,170 +35,67 @@ const Sidebar = ({ isOpen, onToggle }) => {
       },
       {
         id: 'comunidad',
-        label: 'Unidades y Comunidad',
-        icon: '🏠',
+        label: 'Comunidad',
+        icon: '🏘️',
         cases: [
-          { id: 'cu6', label: 'CU6 - Gestión de Unidades', path: '/unidades', implemented: true, roles: ['administrador', 'residente'] },
-          { id: 'cu5-mascotas', label: 'CU5 - Gestión de Mascotas', path: '/mascotas', implemented: true, roles: ['administrador', 'residente'] },
-          { id: 'cu11', label: 'CU11 - Gestión de Eventos', path: '/eventos', implemented: true, roles: ['administrador', 'residente'] },
-          { id: 'cu12', label: 'CU12 - Gestión de Comunicados', path: '/reclamos', implemented: true, roles: ['administrador', 'residente'] },
-          { id: 'cu17', label: 'CU17 - Gestión de Áreas Comunes', path: '/areas-comunes', implemented: true, roles: ['administrador'] }
-        ]
-      },
-      {
-        id: 'finanzas',
-        label: 'Pagos y Finanzas',
-        icon: '💰',
-        cases: [
-          { id: 'cu18-gestion', label: 'CU18 - Gestión de Ingresos', path: '/gestion-ingresos', implemented: true, roles: ['administrador'] },
-          { id: 'cu18-reportes', label: 'CU18 - Reportes Financieros', path: '/reportes-financieros', implemented: false, roles: ['administrador'] },
-          { id: 'cu21', label: 'CU21 - Gestión de Presupuestos', path: '/presupuestos', implemented: false, roles: ['administrador'] },
-          { id: 'cu22', label: 'CU22 - Gestión de Cuotas y Expensas', path: '/cuotas', implemented: true, roles: ['administrador'] }
+          { id: 'cu6', label: 'CU6 - Gestión de Unidades', path: '/unidades', implemented: true, roles: ['administrador'] },
+          { id: 'cu7', label: 'CU7 - Gestión de Vehículos', path: '/vehiculos', implemented: true, roles: ['administrador'] },
+          { id: 'cu11', label: 'CU11 - Eventos', path: '/eventos', implemented: true, roles: ['administrador'] },
+          { id: 'cu12', label: 'CU12 - Comunicados', path: '/reclamos', implemented: true, roles: ['administrador'] }
         ]
       },
       {
         id: 'economia',
-        label: 'Gestión Económica Avanzada',
-        icon: '📊',
+        label: 'Economía y Finanzas',
+        icon: '💰',
         cases: [
-          { id: 'cu8', label: 'CU8 - Gestión de Gastos', path: '/gastos', implemented: true, roles: ['administrador'] },
-          { id: 'cu9', label: 'CU9 - Gestión de Multas', path: '/multas', implemented: true, roles: ['administrador', 'residente'] },
-          { id: 'cu19-reportes', label: 'CU19 - Reportes y Analítica', path: '/reportes-analitica', implemented: true, roles: ['administrador'] },
-          { id: 'cu19-costos', label: 'CU19 - Análisis de Costos', path: '/analisis-costos', implemented: false, roles: ['administrador'] },
-          { id: 'cu20', label: 'CU20 - Proyecciones Financieras', path: '/proyecciones', implemented: false, roles: ['administrador'] }
-        ]
-      },
-      {
-        id: 'mantenimiento',
-        label: 'Mantenimiento y Reservas',
-        icon: '🔧',
-        cases: [
-          { id: 'cu10', label: 'CU10 - Gestión de Mantenimiento', path: '/mantenimiento', implemented: false, roles: ['administrador', 'empleado'] },
-          { id: 'cu16', label: 'CU16 - Reservas de Áreas', path: '/reservas', implemented: false, roles: ['administrador', 'residente'] },
-          { id: 'cu23', label: 'CU23 - Control de Inventario', path: '/inventario', implemented: false, roles: ['administrador', 'empleado'] },
-          { id: 'cu24', label: 'CU24 - Programación de Mantenimiento', path: '/programacion-mantenimiento', implemented: false, roles: ['administrador', 'empleado'] }
+          { id: 'cu18', label: 'CU18 - Gestión de Ingresos', path: '/gestion-ingresos', implemented: true, roles: ['administrador'] },
         ]
       }
     ];
+
     return packages;
   };
 
-  // Filtrar paquetes según el rol del usuario
-  const getAvailablePackages = () => {
-    const allPackages = getPackageStructure();
-    if (!user) return [];
-    const userRole = user.rol?.toLowerCase();
-    if (userRole === 'administrador') {
-      // Administrador ve todo lo implementado
-      return allPackages.map(pkg => ({
-        ...pkg,
-        cases: pkg.cases.filter(caso => caso.implemented)
-      })).filter(pkg => pkg.cases.length > 0);
-    }
-    // Otros roles solo ven lo implementado y lo que les corresponde
-    return allPackages.map(pkg => ({
-      ...pkg,
-      cases: pkg.cases.filter(caso => caso.implemented && caso.roles.includes(userRole))
-    })).filter(pkg => pkg.cases.length > 0);
-  };
+  const packages = getPackageStructure();
 
-  const packages = getAvailablePackages();
 
-  const handleNavigation = (path) => {
+  const handleNavigate = (path) => {
     navigate(path);
-    if (onToggle) {
-      onToggle(); // Cerrar sidebar en móvil después de navegar
-    }
+    if (onToggle) onToggle(false);
   };
 
-  const toggleMenu = (packageId) => {
-    setExpandedMenus(prev => ({
-      ...prev,
-      [packageId]: !prev[packageId]
-    }));
-  };
+  const isActive = (path) => location.pathname.startsWith(path);
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
-
-  const handleBackdropClick = () => {
-    if (onToggle) {
-      onToggle();
-    }
+  const toggleMenu = (id) => {
+    setExpandedMenus((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
-    <>
-      {/* Backdrop for mobile */}
-      {isOpen && (
-        <div
-          className="sidebar-backdrop show"
-          onClick={handleBackdropClick}
-        />
-      )}
-
-      <div className={`sidebar ${isOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <h3>Sistema Condominio</h3>
-          <div className="user-role-badge">
-            {user?.rol}
-          </div>
-        </div>
-      
-      <nav className="sidebar-nav">
-        <ul className="nav-list">
-          {/* Dashboard siempre visible */}
-          <li className="nav-item">
-            <button
-              className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}
-              onClick={() => handleNavigation('/dashboard')}
-            >
-              <span className="nav-icon">📊</span>
-              <span className="nav-label">Dashboard</span>
-            </button>
-          </li>
-
-          {/* Paquetes con menús desplegables */}
-          {packages.map((pkg) => (
-            <li key={pkg.id} className="nav-item package-item">
-              <button
-                className={`nav-link package-link ${expandedMenus[pkg.id] ? 'expanded' : ''}`}
-                onClick={() => toggleMenu(pkg.id)}
-              >
-                <span className="nav-icon">{pkg.icon}</span>
-                <span className="nav-label">{pkg.label}</span>
-                <span className="nav-arrow">
-                  {expandedMenus[pkg.id] ? '▼' : '▶'}
-                </span>
-              </button>
-              
-              {/* Submenú de casos de uso */}
-              {expandedMenus[pkg.id] && (
-                <ul className="submenu">
-                  {pkg.cases.map((caso) => (
-                    <li key={caso.id} className="submenu-item">
-                      <button
-                        className={`submenu-link ${isActive(caso.path) ? 'active' : ''} ${!caso.implemented ? 'not-implemented' : ''}`}
-                        onClick={() => caso.implemented ? handleNavigation(caso.path) : null}
-                        disabled={!caso.implemented}
-                        title={!caso.implemented ? 'Caso de uso no implementado' : ''}
-                      >
-                        <span className="submenu-icon">
-                          {caso.implemented ? '✅' : '⏳'}
-                        </span>
-                        <span className="submenu-label">{caso.label}</span>
-                      </button>
+    <div className={`sidebar ${isOpen ? 'open' : ''}`}>
+      <div className="sidebar-content">
+        {packages.map((pkg) => (
+          <div key={pkg.id} className="sidebar-section">
+            <div className="sidebar-section-header" onClick={() => toggleMenu(pkg.id)}>
+              <span className="icon">{pkg.icon}</span>
+              <span className="label">{pkg.label}</span>
+              <span className="chevron">{expandedMenus[pkg.id] ? '▼' : '▶'}</span>
+            </div>
+            {expandedMenus[pkg.id] && (
+              <ul className="sidebar-menu">
+                {pkg.cases.map((cu) => (
+                  canAccess(cu.roles) && (
+                    <li key={cu.id} className={`sidebar-item ${isActive(cu.path) ? 'active' : ''}`} onClick={() => handleNavigate(cu.path)}>
+                      <span>{cu.label}</span>
                     </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          ))}
-        </ul>
-      </nav>
+                  )
+                ))}
+              </ul>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
-    </>
   );
 };
 

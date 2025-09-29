@@ -46,7 +46,7 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
   const loadInvitados = async () => {
     try {
       const response = await api.get(`/unidades/${unidadId}/detalle_completo/`);
-      setInvitados(response.data.invitados_hoy || []);
+      setInvitados(response.data?.invitados_hoy || []);
     } catch (err) {
       console.error('Error cargando invitados:', err);
     }
@@ -55,9 +55,12 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
   const loadResidentes = async () => {
     try {
       const response = await api.get('/residentes/');
-      setResidentes(response.data || []);
+      const data = response.data;
+      const list = Array.isArray(data) ? data : (Array.isArray(data?.results) ? data.results : []);
+      setResidentes(list);
     } catch (err) {
       console.error('Error cargando residentes:', err);
+      setResidentes([]);
     }
   };
 
@@ -87,10 +90,10 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
   const handleSubmit = async (values) => {
     try {
       const dataToSend = {
-        placa: values.placa.trim().toUpperCase(),
-        marca: values.marca.trim(),
-        modelo: values.modelo.trim(),
-        color: values.color.trim(),
+        placa: (values.placa || '').trim().toUpperCase(),
+        marca: (values.marca || '').trim(),
+        modelo: (values.modelo || '').trim(),
+        color: (values.color || '').trim(),
         residente: values.residente,
         activo: values.activo !== false
       };
@@ -146,12 +149,12 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
   const handleInvitadoSubmit = async (values) => {
     try {
       const dataToSend = {
-        nombre: values.nombre.trim(),
-        ci: values.ci.trim(),
+        nombre: (values.nombre || '').trim(),
+        ci: (values.ci || '').trim(),
         tipo: values.tipo,
         fecha_inicio: values.fecha_inicio,
         fecha_fin: values.fecha_fin,
-        vehiculo_placa: values.vehiculo_placa?.trim() || null,
+        vehiculo_placa: values.vehiculo_placa ? values.vehiculo_placa.trim().toUpperCase() : null,
         evento: values.evento || null
       };
 
@@ -441,10 +444,10 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
               showSearch
               optionFilterProp="children"
               filterOption={(input, option) =>
-                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                (option?.children || '').toLowerCase().indexOf(input.toLowerCase()) >= 0
               }
             >
-              {residentes.map(residente => (
+              {(Array.isArray(residentes) ? residentes : []).map(residente => (
                 <Option key={residente.id} value={residente.id}>
                   {residente.persona_info?.nombre || 'Sin nombre'} (ID: {residente.id})
                 </Option>

@@ -17,6 +17,7 @@ import ListaRoles from '../usuarios/ListaRoles';
 import ListaEmpleados from '../usuarios/ListaEmpleados';
 import ListaUnidades from '../comunidad/ListaUnidades';
 import ListaMascotas from '../comunidad/ListaMascotas';
+import ListaVehiculos from '../comunidad/ListaVehiculos';
 import ListaGastos from '../economia/ListaGastos';
 import ListaMultas from '../economia/ListaMultas';
 import ReportesAnalitica from '../economia/ReportesAnalitica';
@@ -150,6 +151,14 @@ const AppRouter = () => {
             element={
               <ProtectedRoute requiredRoles={['administrador', 'residente']}>
                 <ListaMascotas />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="vehiculos" 
+            element={
+              <ProtectedRoute requiredRoles={['administrador']}>
+                <ListaVehiculos />
               </ProtectedRoute>
             } 
           />

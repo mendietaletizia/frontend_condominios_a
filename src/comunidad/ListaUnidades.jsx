@@ -4,7 +4,6 @@ import { HomeOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ExclamationCi
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/config';
 import { usuariosAPI } from '../api/usuarios';
-import GestionVehiculos from './GestionVehiculos';
 import './ListaUnidades.css';
 
 const { Option } = Select;
@@ -16,7 +15,6 @@ const ListaUnidades = () => {
   const [unidades, setUnidades] = useState([]);
   const [residentesUnidades, setResidentesUnidades] = useState([]);
   const [mascotas, setMascotas] = useState([]);
-  const [vehiculos, setVehiculos] = useState([]);
   const [detalleUnidad, setDetalleUnidad] = useState(null);
   const [residentes, setResidentes] = useState([]);
   const [usuariosResidentes, setUsuariosResidentes] = useState([]);
@@ -25,7 +23,6 @@ const ListaUnidades = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false);
   const [isPropietarioModalVisible, setIsPropietarioModalVisible] = useState(false);
-  const [isVehiculosModalVisible, setIsVehiculosModalVisible] = useState(false);
   const [selectedUnidad, setSelectedUnidad] = useState(null);
   const [editingUnidad, setEditingUnidad] = useState(null);
   const [form] = Form.useForm();
@@ -48,28 +45,16 @@ const ListaUnidades = () => {
         api.get('/residentes/'),
         usuariosAPI.getUsuariosResidentes()
       ]);
-      
-      // Manejar formato de respuesta de Django REST Framework
       const unidadesData = Array.isArray(unidadesRes.data) ? unidadesRes.data : unidadesRes.data.results || [];
       const residentesUnidadesData = Array.isArray(residentesUnidadesRes.data) ? residentesUnidadesRes.data : residentesUnidadesRes.data.results || [];
       const mascotasData = Array.isArray(mascotasRes.data) ? mascotasRes.data : mascotasRes.data.results || [];
       const residentesData = Array.isArray(residentesRes.data) ? residentesRes.data : residentesRes.data.results || [];
       const usuariosResidentesData = Array.isArray(usuariosResidentesRes) ? usuariosResidentesRes : usuariosResidentesRes.results || [];
-      
-      console.log('📊 Datos cargados:', {
-        unidades: unidadesData,
-        residentes: residentesUnidadesData,
-        mascotas: mascotasData,
-        residentesList: residentesData,
-        usuariosResidentes: usuariosResidentesData
-      });
-      
       setUnidades(unidadesData);
       setResidentesUnidades(residentesUnidadesData);
       setMascotas(mascotasData);
       setResidentes(residentesData);
       setUsuariosResidentes(usuariosResidentesData);
-      setVehiculos([]); // Por ahora vacío hasta que se implemente el endpoint
       setError(null);
     } catch (error) {
       console.error('Error cargando datos:', error);
@@ -173,23 +158,13 @@ const ListaUnidades = () => {
     });
   };
 
-  const getResidentesForUnidad = (unidadId) => {
-    return residentesUnidades.filter(ru => ru.id_unidad === unidadId && ru.estado);
-  };
-
-  const getMascotasForUnidad = (unidadId) => {
-    return mascotas.filter(m => m.unidad === unidadId && m.activo);
-  };
-
-  const getVehiculosForUnidad = (unidadId) => {
-    return vehiculos.filter(v => v.unidad === unidadId && v.activo);
-  };
+  const getResidentesForUnidad = (unidadId) => residentesUnidades.filter(ru => ru.id_unidad === unidadId && ru.estado);
+  const getMascotasForUnidad = (unidadId) => mascotas.filter(m => m.unidad === unidadId && m.activo);
 
   const showDetailsModal = async (unidad) => {
     try {
       setSelectedUnidad(unidad);
       setIsDetailsModalVisible(true);
-      // Cargar detalle completo (vehículos e invitados del día)
       const res = await api.get(`/unidades/${unidad.id}/detalle_completo/`);
       setDetalleUnidad(res.data || null);
     } catch (err) {
@@ -198,16 +173,10 @@ const ListaUnidades = () => {
     }
   };
 
-  const showVehiculosModal = (unidad) => {
-    setSelectedUnidad(unidad);
-    setIsVehiculosModalVisible(true);
-  };
-
   const showPropietarioModal = (unidad) => {
     setSelectedUnidad(unidad);
     const propietario = unidad.propietario_info;
     if (propietario) {
-      // Buscar el usuario residente correspondiente al propietario
       const usuarioResidente = usuariosResidentes.find(ur => 
         ur.residente_info && ur.residente_info.id === propietario.id
       );
@@ -225,20 +194,16 @@ const ListaUnidades = () => {
   const handlePropietarioSubmit = async (values) => {
     try {
       if (values.propietario_id) {
-        // Buscar el usuario residente seleccionado
         const usuarioResidente = usuariosResidentes.find(ur => ur.id === values.propietario_id);
         if (!usuarioResidente) {
           message.error('Usuario residente no encontrado');
           return;
         }
 
-        // Buscar o crear el residente asociado a este usuario
         let residenteId;
         if (usuarioResidente.residente_info) {
-          // Si ya tiene un residente asociado, usar ese ID
           residenteId = usuarioResidente.residente_info.id;
         } else {
-          // Si no tiene residente asociado, crear uno nuevo
           try {
             const nuevoResidente = await usuariosAPI.createResidente({
               nombre: usuarioResidente.nombre_completo,
@@ -252,12 +217,11 @@ const ListaUnidades = () => {
           }
         }
 
-        // Crear o actualizar la relación como propietario
         const relacionData = {
           id_residente: residenteId,
           id_unidad: selectedUnidad.id,
           rol_en_unidad: 'propietario',
-          fecha_inicio: new Date().toISOString().split('T')[0], // Formato YYYY-MM-DD
+          fecha_inicio: new Date().toISOString().split('T')[0],
           estado: true
         };
 
@@ -272,7 +236,6 @@ const ListaUnidades = () => {
           estado: typeof relacionData.estado
         });
 
-        // Validar que los IDs existen
         if (!residenteId || residenteId <= 0) {
           throw new Error('ID de residente inválido');
         }
@@ -280,7 +243,6 @@ const ListaUnidades = () => {
           throw new Error('ID de unidad inválido');
         }
 
-        // Verificar que el residente existe
         try {
           const residenteCheck = await api.get(`/residentes/${residenteId}/`);
           console.log('✅ Residente existe:', residenteCheck.data);
@@ -289,7 +251,6 @@ const ListaUnidades = () => {
           throw new Error(`El residente con ID ${residenteId} no existe`);
         }
 
-        // Verificar que la unidad existe
         try {
           const unidadCheck = await api.get(`/unidades/${selectedUnidad.id}/`);
           console.log('✅ Unidad existe:', unidadCheck.data);
@@ -298,14 +259,12 @@ const ListaUnidades = () => {
           throw new Error(`La unidad con ID ${selectedUnidad.id} no existe`);
         }
 
-        // Verificar si ya existe una relación con la misma combinación única
         const relacionExistente = residentesUnidades.find(ru => 
           ru.id_residente === residenteId && 
           ru.id_unidad === selectedUnidad.id && 
           ru.fecha_inicio === relacionData.fecha_inicio
         );
 
-        // Verificar si ya existe una relación como propietario
         const propietarioExistente = residentesUnidades.find(ru => 
           ru.id_unidad === selectedUnidad.id && 
           ru.rol_en_unidad === 'propietario' && 
@@ -316,19 +275,16 @@ const ListaUnidades = () => {
         console.log('🔍 Propietario existente:', propietarioExistente);
 
         if (relacionExistente) {
-          // Si ya existe una relación con la misma combinación única, actualizarla
           console.log('🔄 Actualizando relación existente (unique constraint)...');
           console.log('🔄 URL:', `/residentes-unidad/${relacionExistente.id}/`);
           console.log('🔄 Datos:', relacionData);
           await api.put(`/residentes-unidad/${relacionExistente.id}/`, relacionData);
         } else if (propietarioExistente) {
-          // Si existe otro propietario pero no la misma relación, actualizar el existente
           console.log('🔄 Cambiando propietario existente...');
           console.log('🔄 URL:', `/residentes-unidad/${propietarioExistente.id}/`);
           console.log('🔄 Datos:', relacionData);
           await api.put(`/residentes-unidad/${propietarioExistente.id}/`, relacionData);
         } else {
-          // Crear nueva relación
           console.log('➕ Creando nueva relación...');
           console.log('➕ URL:', '/residentes-unidad/');
           console.log('➕ Datos:', relacionData);
@@ -395,7 +351,6 @@ const ListaUnidades = () => {
     return `${metros} m²`;
   };
 
-  // Filtrar unidades
   const filteredUnidades = unidades.filter(unidad => {
     const matchesSearch = !searchText || 
       unidad.numero_casa.toLowerCase().includes(searchText.toLowerCase());
