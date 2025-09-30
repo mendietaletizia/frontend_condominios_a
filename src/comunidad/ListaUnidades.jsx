@@ -4,6 +4,7 @@ import { HomeOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ExclamationCi
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/config';
 import { usuariosAPI } from '../api/usuarios';
+import GestionVehiculos from './GestionVehiculos';
 import './ListaUnidades.css';
 
 const { Option } = Select;
@@ -28,6 +29,7 @@ const ListaUnidades = () => {
   const [form] = Form.useForm();
   const [propietarioForm] = Form.useForm();
   const [searchText, setSearchText] = useState('');
+  const [isVehiculosModalVisible, setIsVehiculosModalVisible] = useState(false);
 
   useEffect(() => {
     if (canAccess('administrador')) {
@@ -189,6 +191,11 @@ const ListaUnidades = () => {
       propietarioForm.resetFields();
     }
     setIsPropietarioModalVisible(true);
+  };
+
+  const showVehiculosModal = (unidad) => {
+    setSelectedUnidad(unidad);
+    setIsVehiculosModalVisible(true);
   };
 
   const handlePropietarioSubmit = async (values) => {
@@ -488,17 +495,7 @@ const ListaUnidades = () => {
               Propietario
             </Button>
           </Tooltip>
-          <Tooltip title="Gestionar vehículos">
-            <Button
-              type="link"
-              icon={<CarOutlined />}
-              onClick={() => showVehiculosModal(record)}
-              size="small"
-              style={{ padding: '4px 6px', fontSize: '11px', color: '#1890ff' }}
-            >
-              Vehículos
-            </Button>
-          </Tooltip>
+          {/* Botón de vehículos removido a solicitud */}
           <Button
             type="link"
             icon={<EditOutlined />}
@@ -854,46 +851,63 @@ const ListaUnidades = () => {
               </Panel>
 
               {/* Vehículos */}
-              <Panel 
-                header={
-                  <Space>
-                    <CarOutlined />
-                    <span>Vehículos ({Array.isArray(detalleUnidad?.vehiculos) ? detalleUnidad.vehiculos.length : 0})</span>
-                  </Space>
-                } 
-                key="vehiculos"
-              >
-                {Array.isArray(detalleUnidad?.vehiculos) && detalleUnidad.vehiculos.length > 0 ? (
-                  <List
-                    dataSource={detalleUnidad.vehiculos}
-                    renderItem={(vehiculo) => (
-                      <List.Item>
-                        <List.Item.Meta
-                          avatar={<Avatar icon={<CarOutlined />} style={{ backgroundColor: '#1890ff' }} />}
-                          title={vehiculo.placa}
-                          description={
-                            <Space direction="vertical" size="small">
-                              <Space>
-                                <Tag color="blue">{vehiculo.marca}</Tag>
-                                <Tag color="green">{vehiculo.modelo}</Tag>
-                                <Tag color="orange">{vehiculo.color}</Tag>
+              {Array.isArray(detalleUnidad?.vehiculos) ? (
+                <Panel 
+                  header={
+                    <Space>
+                      <CarOutlined />
+                      <span>Vehículos ({detalleUnidad.vehiculos.length})</span>
+                    </Space>
+                  } 
+                  key="vehiculos"
+                >
+                  {detalleUnidad.vehiculos.length > 0 ? (
+                    <List
+                      dataSource={detalleUnidad.vehiculos}
+                      renderItem={(vehiculo) => (
+                        <List.Item>
+                          <List.Item.Meta
+                            avatar={<Avatar icon={<CarOutlined />} style={{ backgroundColor: '#1890ff' }} />}
+                            title={vehiculo.placa}
+                            description={
+                              <Space direction="vertical" size="small">
+                                <Space>
+                                  <Tag color="blue">{vehiculo.marca}</Tag>
+                                  <Tag color="green">{vehiculo.modelo}</Tag>
+                                  <Tag color="orange">{vehiculo.color}</Tag>
+                                </Space>
+                                <span style={{ fontSize: '12px', color: '#666' }}>
+                                  Dueño: {vehiculo.residente_nombre || 'No especificado'}
+                                </span>
                               </Space>
-                              <span style={{ fontSize: '12px', color: '#666' }}>
-                                Dueño: {vehiculo.residente_nombre || 'No especificado'}
-                              </span>
-                            </Space>
-                          }
-                        />
-                      </List.Item>
-                    )}
-                  />
-                ) : (
+                            }
+                          />
+                        </List.Item>
+                      )}
+                    />
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+                      <CarOutlined style={{ fontSize: '24px', marginBottom: '8px' }} />
+                      <p>No hay vehículos registrados</p>
+                    </div>
+                  )}
+                </Panel>
+              ) : (
+                <Panel 
+                  header={
+                    <Space>
+                      <CarOutlined />
+                      <span>Vehículos (0)</span>
+                    </Space>
+                  }
+                  key="vehiculos"
+                >
                   <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
                     <CarOutlined style={{ fontSize: '24px', marginBottom: '8px' }} />
-                    <p>No hay vehículos registrados</p>
+                    <p>Detalle no disponible para esta unidad</p>
                   </div>
-                )}
-              </Panel>
+                </Panel>
+              )}
 
               {/* Invitados de Hoy */}
               <Panel 
@@ -1006,27 +1020,7 @@ const ListaUnidades = () => {
         </Form>
       </Modal>
 
-      {/* Modal para gestión de vehículos */}
-      <Modal
-        title={
-          <Space>
-            <CarOutlined />
-            Gestión de Vehículos - Unidad {selectedUnidad?.numero_casa}
-          </Space>
-        }
-        open={isVehiculosModalVisible}
-        onCancel={() => setIsVehiculosModalVisible(false)}
-        footer={null}
-        width={1200}
-        style={{ top: 20 }}
-      >
-        {selectedUnidad && (
-          <GestionVehiculos 
-            unidadId={selectedUnidad.id} 
-            unidadNumero={selectedUnidad.numero_casa}
-          />
-        )}
-      </Modal>
+      {/* Modal de gestión de vehículos removido a solicitud */}
 
     </div>
   );

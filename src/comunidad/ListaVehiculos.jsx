@@ -54,10 +54,12 @@ const ListaVehiculos = () => {
         modelo: record.modelo,
         color: record.color,
         residente: record.residente,
-        activo: record.activo
+        activo: record.activo,
+        unidad: String(record?.unidad_info?.id || filterUnidad || '')
       });
     } else {
       form.resetFields();
+      form.setFieldsValue({ unidad: String(filterUnidad || '') });
     }
     setIsModalVisible(true);
   };
@@ -86,6 +88,8 @@ const ListaVehiculos = () => {
         message.success('Vehículo creado');
       }
       handleCancel();
+      // Mostrar la unidad seleccionada tras crear/actualizar
+      if (values.unidad) setFilterUnidad(String(values.unidad));
       loadData();
     } catch (e) {
       console.error(e);
@@ -168,6 +172,13 @@ const ListaVehiculos = () => {
 
       <Modal title={editing ? 'Editar Vehículo' : 'Nuevo Vehículo'} open={isModalVisible} onCancel={handleCancel} footer={null} width={600}>
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          <Form.Item name="unidad" label="Unidad" rules={[{ required: true, message: 'Seleccione unidad' }]}>
+            <Select placeholder="Seleccionar unidad" allowClear showSearch optionFilterProp="children">
+              {(Array.isArray(unidades) ? unidades : []).map(u => (
+                <Option key={u.id} value={String(u.id)}>{u.numero_casa}</Option>
+              ))}
+            </Select>
+          </Form.Item>
           <Form.Item name="placa" label="Placa" rules={[{ required: true, message: 'Ingrese placa' }]}>
             <Input placeholder="ABC-123" />
           </Form.Item>
@@ -182,9 +193,17 @@ const ListaVehiculos = () => {
           </Form.Item>
           <Form.Item name="residente" label="Residente" rules={[{ required: true, message: 'Seleccione residente' }]}>
             <Select placeholder="Seleccionar residente" showSearch optionFilterProp="children">
-              {(Array.isArray(residentes) ? residentes : []).map(r => (
-                <Option key={r.id} value={r.id}>{r.persona_info?.nombre || `Residente ${r.id}`}</Option>
-              ))}
+              {(() => {
+                const unidadSel = form.getFieldValue('unidad');
+                const lista = (Array.isArray(residentes) ? residentes : []).filter(r => {
+                  if (!unidadSel) return true;
+                  const uinfo = r.unidades_info || [];
+                  return Array.isArray(uinfo) && uinfo.some(u => String(u.id) === String(unidadSel));
+                });
+                return lista.map(r => (
+                  <Option key={r.id} value={r.id}>{r.persona_info?.nombre || `Residente ${r.id}`}</Option>
+                ));
+              })()}
             </Select>
           </Form.Item>
           <Form.Item>

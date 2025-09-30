@@ -170,5 +170,150 @@ export const comunidadAPI = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // ===== RESIDENTES-UNIDAD =====
+  // Crear relación residente-unidad
+  async createResidenteUnidad(data) {
+    try {
+      const response = await api.post('/residentes-unidad/', data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Actualizar relación residente-unidad
+  async updateResidenteUnidad(id, data) {
+    try {
+      const response = await api.put(`/residentes-unidad/${id}/`, data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Eliminar relación residente-unidad
+  async deleteResidenteUnidad(id) {
+    try {
+      const response = await api.delete(`/residentes-unidad/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ===== MASCOTAS =====
+  // Obtener todas las mascotas
+  async getMascotas() {
+    try {
+      const response = await api.get('/mascotas/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Crear una nueva mascota
+  async createMascota(mascotaData) {
+    try {
+      const response = await api.post('/mascotas/', mascotaData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Actualizar una mascota
+  async updateMascota(id, mascotaData) {
+    try {
+      const response = await api.put(`/mascotas/${id}/`, mascotaData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Eliminar una mascota
+  async deleteMascota(id) {
+    try {
+      const response = await api.delete(`/mascotas/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ===== REGLAMENTO =====
+  // Obtener reglamentos
+  async getReglamentos() {
+    try {
+      const response = await api.get('/reglamento/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener reglamentos activos
+  async getReglamentosActivos() {
+    try {
+      const response = await api.get('/reglamento/activos/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener reglamentos por tipo
+  async getReglamentosPorTipo(tipo) {
+    try {
+      const response = await api.get(`/reglamento/por_tipo/?tipo=${tipo}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ===== NOTIFICACIONES RESIDENTE =====
+  // Obtener notificaciones del residente autenticado
+  async getNotificacionesResidente() {
+    try {
+      const response = await api.get('/notificaciones-residente/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Marcar notificación como leída
+  async marcarNotificacionLeida(id) {
+    try {
+      const response = await api.patch(`/notificaciones-residente/${id}/`, { leido: true });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ===== UNIDADES - ENDPOINTS ESPECIALES =====
+  // Obtener detalle completo de unidad (con vehículos e invitados)
+  async getUnidadDetalleCompleto(id) {
+    try {
+      const response = await api.get(`/unidades/${id}/detalle_completo/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener resumen de vehículos por unidad
+  async getVehiculosResumenUnidad(id) {
+    try {
+      const response = await api.get(`/unidades/${id}/vehiculos/resumen/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };

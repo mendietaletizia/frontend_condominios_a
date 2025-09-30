@@ -1,62 +1,76 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Card, Table, Button, Space, Tag, Modal, Form, Input, Select, 
-  message, DatePicker, Row, Col, Statistic, Progress, Divider,
-  Tabs, Spin, Alert, Tooltip, Badge
+  Card, Table, Button, Space,
+  message, Row, Col, Statistic
 } from 'antd';
 import { 
-  PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, 
-  BarChartOutlined, LineChartOutlined, PieChartOutlined,
-  DownloadOutlined, FileTextOutlined, CalculatorOutlined,
-  RiseOutlined, MoneyCollectOutlined, WarningOutlined,
-  CheckCircleOutlined, ClockCircleOutlined, ExclamationCircleOutlined
+  BarChartOutlined, LineChartOutlined, RiseOutlined, WarningOutlined
 } from '@ant-design/icons';
 import api from '../api/config';
 import './ReportesAnalitica.css';
 
-const { Option } = Select;
-const { TextArea } = Input;
-const { RangePicker } = DatePicker;
-const { TabPane } = Tabs;
-
 const ReportesAnalitica = () => {
-  const [activeTab, setActiveTab] = useState('reportes');
-  const [reportes, setReportes] = useState([]);
-  const [analisis, setAnalisis] = useState([]);
-  const [indicadores, setIndicadores] = useState([]);
   const [resumenFinanciero, setResumenFinanciero] = useState({});
   const [analisisMorosidad, setAnalisisMorosidad] = useState({});
   const [loading, setLoading] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [modalType, setModalType] = useState('reporte');
-  const [editingItem, setEditingItem] = useState(null);
-  const [form] = Form.useForm();
 
   useEffect(() => {
     cargarDatos();
-  }, [activeTab]);
+  }, []);
 
   const cargarDatos = async () => {
     try {
       setLoading(true);
       
-      if (activeTab === 'reportes') {
-        const response = await api.get('/reportes-financieros/');
-        setReportes(response.data.results || response.data);
-      } else if (activeTab === 'analisis') {
-        const response = await api.get('/analisis-financieros/');
-        setAnalisis(response.data.results || response.data);
-      } else if (activeTab === 'indicadores') {
-        const response = await api.get('/indicadores-financieros/calcular_indicadores/');
-        setIndicadores(response.data.indicadores || []);
-      } else if (activeTab === 'dashboard') {
-        const [resumenRes, morosidadRes] = await Promise.all([
-          api.get('/dashboards-financieros/resumen_financiero/'),
-          api.get('/dashboards-financieros/analisis_morosidad/')
-        ]);
-        setResumenFinanciero(resumenRes.data);
-        setAnalisisMorosidad(morosidadRes.data);
-      }
+      // Construir dashboard mínimo desde endpoints existentes
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+
+      // 1) Ingresos confirmados
+      const ingresosRes = await api.get('/ingresos/', { params: { estado: 'confirmado' } });
+      const ingresos = ingresosRes.data.results || ingresosRes.data || [];
+      const totalMes = ingresos
+        .filter(i => (i.fecha_ingreso || '').startsWith(`${year}-${month}`))
+        .reduce((s, i) => s + parseFloat(i.monto || 0), 0);
+      const totalAño = ingresos
+        .filter(i => (i.fecha_ingreso || '').startsWith(`${year}-`))
+        .reduce((s, i) => s + parseFloat(i.monto || 0), 0);
+
+      // 2) Morosidad desde cuotas por unidad
+      const cuotasRes = await api.get('/cuotas-unidad/');
+      const cuotas = cuotasRes.data.results || cuotasRes.data || [];
+      const totalMorosidad = cuotas
+        .filter(c => ['pendiente', 'vencida', 'parcial'].includes(c.estado))
+        .reduce((s, c) => s + parseFloat(c.saldo_pendiente || (c.monto - (c.monto_pagado || 0)) || 0), 0);
+      const vencidas = cuotas.filter(c => c.estado === 'vencida').length;
+
+      // 3) Top morosos (simple por residente)
+      const deudaPorResidente = {};
+      cuotas.forEach(c => {
+        if (['pendiente', 'vencida', 'parcial'].includes(c.estado)) {
+          const key = c.residente_nombre || 'Sin nombre';
+          const deuda = parseFloat(c.saldo_pendiente || (c.monto - (c.monto_pagado || 0)) || 0);
+          deudaPorResidente[key] = (deudaPorResidente[key] || 0) + deuda;
+        }
+      });
+      const top = Object.entries(deudaPorResidente)
+        .map(([residente, total_deuda]) => ({ residente, total_deuda }))
+        .sort((a, b) => b.total_deuda - a.total_deuda)
+        .slice(0, 5);
+
+      setResumenFinanciero({
+        total_ingresos: totalMes,
+        total_ingresos_anio: totalAño,
+        saldo_neto: totalMes, // mínimo: sin egresos
+        margen_utilidad: 0
+      });
+      setAnalisisMorosidad({
+        total_morosidad: totalMorosidad,
+        residentes_morosos: top.length,
+        porcentaje_morosidad: 0,
+        top_morosos: top
+      });
     } catch (error) {
       console.error('Error cargando datos:', error);
       message.error('Error al cargar datos');
@@ -322,115 +336,7 @@ const ReportesAnalitica = () => {
     },
   ];
 
-  const renderReportesTab = () => (
-    <div>
-      <div className="page-header">
-        <h2><FileTextOutlined /> Reportes Financieros</h2>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={() => {
-            setModalType('reporte');
-            setIsModalVisible(true);
-          }}
-        >
-          Generar Reporte
-        </Button>
-      </div>
-
-      <Table
-        columns={columnsReportes}
-        dataSource={reportes}
-        loading={loading}
-        rowKey="id"
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} reportes`
-        }}
-      />
-    </div>
-  );
-
-  const renderAnalisisTab = () => (
-    <div>
-      <div className="page-header">
-        <h2><BarChartOutlined /> Análisis Financieros</h2>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={() => {
-            setModalType('analisis');
-            setIsModalVisible(true);
-          }}
-        >
-          Nuevo Análisis
-        </Button>
-      </div>
-
-      <Table
-        columns={columnsAnalisis}
-        dataSource={analisis}
-        loading={loading}
-        rowKey="id"
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} análisis`
-        }}
-      />
-    </div>
-  );
-
-  const renderIndicadoresTab = () => (
-    <div>
-      <div className="page-header">
-        <h2><CalculatorOutlined /> Indicadores Financieros</h2>
-        <Button 
-          type="primary" 
-          icon={<CalculatorOutlined />}
-          onClick={cargarDatos}
-        >
-          Recalcular Indicadores
-        </Button>
-      </div>
-
-      <Row gutter={[16, 16]}>
-        {indicadores.map((indicador, index) => (
-          <Col xs={24} sm={12} lg={8} key={index}>
-            <Card className="indicador-card">
-              <div className="indicador-header">
-                <div 
-                  className="indicador-color" 
-                  style={{ backgroundColor: getTipoIndicadorColor(indicador.tipo_indicador) }}
-                />
-                <div className="indicador-info">
-                  <h4>{indicador.nombre}</h4>
-                  <p className="indicador-tipo">{indicador.tipo_indicador}</p>
-                </div>
-              </div>
-              <div className="indicador-value">
-                <span className="valor">{indicador.valor}</span>
-                <span className="unidad">{indicador.unidad}</span>
-              </div>
-              <div className="indicador-description">
-                {indicador.descripcion}
-              </div>
-              {indicador.formula && (
-                <div className="indicador-formula">
-                  <small>Fórmula: {indicador.formula}</small>
-                </div>
-              )}
-            </Card>
-          </Col>
-        ))}
-      </Row>
-    </div>
-  );
-
-  const renderDashboardTab = () => (
+  const renderDashboard = () => (
     <div>
       <div className="page-header">
         <h2><LineChartOutlined /> Dashboard Financiero</h2>
@@ -529,7 +435,7 @@ const ReportesAnalitica = () => {
                   title: 'Deuda Total', 
                   dataIndex: 'total_deuda', 
                   key: 'total_deuda',
-                  render: (monto) => `$${parseFloat(monto).toLocaleString()}`
+                  render: (monto) => `Bs. ${parseFloat(monto).toLocaleString()}`
                 }
               ]}
               pagination={false}
@@ -546,162 +452,7 @@ const ReportesAnalitica = () => {
       <div className="page-header">
         <h1><BarChartOutlined /> Reportes y Analítica</h1>
       </div>
-
-      <Tabs activeKey={activeTab} onChange={setActiveTab}>
-        <TabPane tab="Reportes" key="reportes">
-          {renderReportesTab()}
-        </TabPane>
-        <TabPane tab="Análisis" key="analisis">
-          {renderAnalisisTab()}
-        </TabPane>
-        <TabPane tab="Indicadores" key="indicadores">
-          {renderIndicadoresTab()}
-        </TabPane>
-        <TabPane tab="Dashboard" key="dashboard">
-          {renderDashboardTab()}
-        </TabPane>
-      </Tabs>
-
-      {/* Modal para Reportes y Análisis */}
-      <Modal
-        title={modalType === 'reporte' ? 'Generar Reporte' : 'Nuevo Análisis'}
-        open={isModalVisible}
-        onCancel={() => {
-          setIsModalVisible(false);
-          form.resetFields();
-          setEditingItem(null);
-        }}
-        footer={null}
-        width={800}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
-          <Form.Item
-            name="nombre"
-            label="Nombre"
-            rules={[{ required: true, message: 'Ingrese el nombre' }]}
-          >
-            <Input placeholder="Nombre del reporte/análisis" />
-          </Form.Item>
-
-          {modalType === 'reporte' ? (
-            <>
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="tipo_reporte"
-                    label="Tipo de Reporte"
-                    rules={[{ required: true, message: 'Seleccione el tipo' }]}
-                  >
-                    <Select placeholder="Seleccione el tipo">
-                      <Option value="mensual">Reporte Mensual</Option>
-                      <Option value="trimestral">Reporte Trimestral</Option>
-                      <Option value="anual">Reporte Anual</Option>
-                      <Option value="personalizado">Reporte Personalizado</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="estado"
-                    label="Estado"
-                    initialValue="generando"
-                  >
-                    <Select>
-                      <Option value="generando">Generando</Option>
-                      <Option value="completado">Completado</Option>
-                      <Option value="error">Error</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="fecha_inicio"
-                    label="Fecha Inicio"
-                    rules={[{ required: true, message: 'Seleccione la fecha inicio' }]}
-                  >
-                    <DatePicker style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="fecha_fin"
-                    label="Fecha Fin"
-                    rules={[{ required: true, message: 'Seleccione la fecha fin' }]}
-                  >
-                    <DatePicker style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-              </Row>
-            </>
-          ) : (
-            <>
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="tipo_analisis"
-                    label="Tipo de Análisis"
-                    rules={[{ required: true, message: 'Seleccione el tipo' }]}
-                  >
-                    <Select placeholder="Seleccione el tipo">
-                      <Option value="tendencia">Análisis de Tendencia</Option>
-                      <Option value="comparativo">Análisis Comparativo</Option>
-                      <Option value="proyeccion">Proyección Financiera</Option>
-                      <Option value="eficiencia">Análisis de Eficiencia</Option>
-                      <Option value="morosidad">Análisis de Morosidad</Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="periodo_inicio"
-                    label="Período Inicio"
-                    rules={[{ required: true, message: 'Seleccione la fecha inicio' }]}
-                  >
-                    <DatePicker style={{ width: '100%' }} />
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Form.Item
-                name="periodo_fin"
-                label="Período Fin"
-                rules={[{ required: true, message: 'Seleccione la fecha fin' }]}
-              >
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </>
-          )}
-
-          <Form.Item
-            name="observaciones"
-            label="Observaciones"
-          >
-            <TextArea rows={3} placeholder="Observaciones adicionales" />
-          </Form.Item>
-
-          <Form.Item>
-            <Space>
-              <Button type="primary" htmlType="submit">
-                {editingItem ? 'Actualizar' : 'Generar'}
-              </Button>
-              <Button onClick={() => {
-                setIsModalVisible(false);
-                form.resetFields();
-                setEditingItem(null);
-              }}>
-                Cancelar
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
+      {renderDashboard()}
     </div>
   );
 };

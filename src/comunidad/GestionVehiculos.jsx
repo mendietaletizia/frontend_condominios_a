@@ -11,6 +11,8 @@ const { Panel } = Collapse;
 const GestionVehiculos = ({ unidadId, unidadNumero }) => {
   const { user } = useAuth();
   const [vehiculos, setVehiculos] = useState([]);
+  const [unidades, setUnidades] = useState([]);
+  const [selectedUnidadId, setSelectedUnidadId] = useState(unidadId || null);
   const [invitados, setInvitados] = useState([]);
   const [residentes, setResidentes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,16 +25,37 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
 
   useEffect(() => {
     if (unidadId) {
+      setSelectedUnidadId(unidadId);
       loadVehiculos();
       loadInvitados();
-      loadResidentes();
     }
+    loadResidentes();
+    loadUnidades();
   }, [unidadId]);
 
-  const loadVehiculos = async () => {
+  useEffect(() => {
+    if (selectedUnidadId) {
+      loadVehiculos(selectedUnidadId);
+    }
+  }, [selectedUnidadId]);
+
+  const loadUnidades = async () => {
+    try {
+      const response = await api.get('/unidades/');
+      const data = response.data;
+      const list = Array.isArray(data) ? data : (Array.isArray(data?.results) ? data.results : []);
+      setUnidades(list);
+    } catch (err) {
+      console.error('Error cargando unidades:', err);
+      setUnidades([]);
+    }
+  };
+
+  const loadVehiculos = async (unidadTargetId) => {
     try {
       setLoading(true);
-      const response = await api.get(`/unidades/${unidadId}/vehiculos/`);
+      const unidadToUse = unidadTargetId || selectedUnidadId || unidadId;
+      const response = await api.get(`/placas-vehiculo/?unidad_id=${unidadToUse}`);
       setVehiculos(response.data || []);
       setError(null);
     } catch (err) {
@@ -73,10 +96,14 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
         modelo: vehiculo.modelo,
         color: vehiculo.color,
         residente: vehiculo.residente_id,
-        activo: vehiculo.activo
+        activo: vehiculo.activo,
+        unidad: selectedUnidadId || unidadId
       });
+      setSelectedUnidadId(unidadId);
     } else {
       form.resetFields();
+      form.setFieldsValue({ unidad: selectedUnidadId || unidadId });
+      setSelectedUnidadId(unidadId);
     }
     setIsModalVisible(true);
   };
@@ -89,6 +116,17 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
 
   const handleSubmit = async (values) => {
     try {
+      const unidadSeleccionada = values.unidad || selectedUnidadId || unidadId;
+      const residenteSel = (Array.isArray(residentes) ? residentes : []).find(r => r.id === values.residente);
+      if (unidadSeleccionada && residenteSel) {
+        const uinfo = residenteSel.unidades_info || [];
+        const pertenece = Array.isArray(uinfo) && uinfo.some(u => String(u.id) === String(unidadSeleccionada));
+        if (!pertenece) {
+          message.error('El residente no pertenece a la unidad seleccionada');
+          return;
+        }
+      }
+
       const dataToSend = {
         placa: (values.placa || '').trim().toUpperCase(),
         marca: (values.marca || '').trim(),
@@ -102,12 +140,14 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
         await api.put(`/placas-vehiculo/${editingVehiculo.id}/`, dataToSend);
         message.success('Vehículo actualizado exitosamente');
       } else {
-        await api.post(`/unidades/${unidadId}/vehiculos/`, dataToSend);
+        // Crear placa de vehículo del residente. La unidad solo se usa para filtrar el listado
+        await api.post(`/placas-vehiculo/`, dataToSend);
         message.success('Vehículo creado exitosamente');
+        if (unidadSeleccionada) setSelectedUnidadId(unidadSeleccionada);
       }
       
       handleCancel();
-      loadVehiculos();
+      loadVehiculos(unidadSeleccionada);
     } catch (error) {
       console.error('Error al guardar vehículo:', error);
       const errorMessage = error.response?.data?.detail || 
@@ -127,7 +167,7 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
       cancelText: 'Cancelar',
       onOk: async () => {
         try {
-          await api.delete(`/unidades/${unidadId}/vehiculos/${id}/`);
+          await api.delete(`/placas-vehiculo/${id}/`);
           message.success('Vehículo eliminado exitosamente');
           loadVehiculos();
         } catch (error) {
@@ -202,13 +242,17 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
     {
       title: 'Residente',
       key: 'residente',
-      width: 150,
-      render: (_, record) => (
-        <div>
-          <div style={{ fontWeight: 'bold' }}>{record.residente_nombre}</div>
-          <div style={{ fontSize: '11px', color: '#666' }}>ID: {record.residente_id}</div>
-        </div>
-      ),
+      width: 180,
+      render: (_, record) => {
+        const nombre = record.residente_info?.nombre || record.residente_nombre || '—';
+        const id = record.residente_info?.id || record.residente_id || '—';
+        return (
+          <div>
+            <div style={{ fontWeight: 'bold' }}>{nombre}</div>
+            <div style={{ fontSize: '11px', color: '#666' }}>ID: {id}</div>
+          </div>
+        );
+      },
     },
     {
       title: 'Estado',
@@ -324,9 +368,26 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
           </Space>
         }
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
-            Nuevo Vehículo
-          </Button>
+          <Space>
+            <Select
+              value={selectedUnidadId || undefined}
+              onChange={(val) => setSelectedUnidadId(val)}
+              placeholder="Seleccionar Unidad"
+              style={{ width: 200 }}
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) => (option?.children || '').toLowerCase().includes(input.toLowerCase())}
+            >
+              {(Array.isArray(unidades) ? unidades : []).map(u => (
+                <Option key={u.id} value={u.id}>
+                  {u.numero_casa}
+                </Option>
+              ))}
+            </Select>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
+              Nuevo Vehículo
+            </Button>
+          </Space>
         }
         style={{ marginBottom: 16 }}
       >
@@ -402,6 +463,8 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
           layout="vertical"
           onFinish={handleSubmit}
         >
+          
+
           <Form.Item
             name="placa"
             label="Placa"
@@ -447,11 +510,18 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
                 (option?.children || '').toLowerCase().indexOf(input.toLowerCase()) >= 0
               }
             >
-              {(Array.isArray(residentes) ? residentes : []).map(residente => (
-                <Option key={residente.id} value={residente.id}>
-                  {residente.persona_info?.nombre || 'Sin nombre'} (ID: {residente.id})
-                </Option>
-              ))}
+              {(() => {
+                const unidadSel = form.getFieldValue('unidad') || selectedUnidadId || unidadId;
+                const lista = (Array.isArray(residentes) ? residentes : []).filter(r => {
+                  const uinfo = r.unidades_info || [];
+                  return unidadSel ? (Array.isArray(uinfo) && uinfo.some(u => String(u.id) === String(unidadSel))) : true;
+                });
+                return lista.map(residente => (
+                  <Option key={residente.id} value={residente.id}>
+                    {residente.persona_info?.nombre || 'Sin nombre'}
+                  </Option>
+                ));
+              })()}
             </Select>
           </Form.Item>
 
@@ -464,6 +534,26 @@ const GestionVehiculos = ({ unidadId, unidadNumero }) => {
             <Select>
               <Option value={true}>Activo</Option>
               <Option value={false}>Inactivo</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="unidad"
+            label="Unidad"
+            rules={[{ required: true, message: 'Seleccione la unidad a la que pertenece' }]}
+          >
+            <Select
+              placeholder="Seleccionar Unidad"
+              showSearch
+              optionFilterProp="children"
+              filterOption={(input, option) => (option?.children || '').toLowerCase().includes(input.toLowerCase())}
+              onChange={(val) => setSelectedUnidadId(val)}
+            >
+              {(Array.isArray(unidades) ? unidades : []).map(u => (
+                <Option key={u.id} value={u.id}>
+                  {u.numero_casa}
+                </Option>
+              ))}
             </Select>
           </Form.Item>
 

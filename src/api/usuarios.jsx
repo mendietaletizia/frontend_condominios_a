@@ -91,7 +91,7 @@ export const usuariosAPI = {
       // Luego crear el residente con la persona creada
       const residentePayload = {
         persona: personaId,
-        usuario: residenteData.usuario_asociado || null,
+        // Importante: NO enviar ambos campos. Solo usuario_asociado cuando corresponda
         usuario_asociado: residenteData.usuario_asociado || null
       };
 
@@ -193,6 +193,199 @@ export const usuariosAPI = {
       const response = await api.get('/usuarios-residentes/');
       // Handle Django REST Framework response format
       return Array.isArray(response.data) ? response.data : response.data.results || [];
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ===== INVITADOS =====
+  // Obtener todos los invitados
+  async getInvitados() {
+    try {
+      const response = await api.get('/invitados/');
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Crear un nuevo invitado
+  async createInvitado(invitadoData) {
+    try {
+      const response = await api.post('/invitados/', invitadoData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Actualizar un invitado
+  async updateInvitado(id, invitadoData) {
+    try {
+      const response = await api.put(`/invitados/${id}/`, invitadoData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Eliminar un invitado
+  async deleteInvitado(id) {
+    try {
+      const response = await api.delete(`/invitados/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener invitados activos
+  async getInvitadosActivos() {
+    try {
+      const response = await api.get('/invitados/activos/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener invitados por evento
+  async getInvitadosPorEvento(eventoId) {
+    try {
+      const response = await api.get(`/invitados/por_evento/?evento_id=${eventoId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Check-in de invitado
+  async checkInInvitado(id) {
+    try {
+      const response = await api.post(`/invitados/${id}/check_in/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Check-out de invitado
+  async checkOutInvitado(id) {
+    try {
+      const response = await api.post(`/invitados/${id}/check_out/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener invitados en el condominio (con check-in sin check-out)
+  async getInvitadosEnCondominio() {
+    try {
+      const response = await api.get('/invitados/en_condominio/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener resumen de seguridad para hoy
+  async getSeguridadHoy() {
+    try {
+      const response = await api.get('/invitados/seguridad/hoy/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener resumen de seguridad
+  async getSeguridadResumen() {
+    try {
+      const response = await api.get('/invitados/seguridad/resumen/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ===== RECLAMOS =====
+  // Obtener todos los reclamos
+  async getReclamos() {
+    try {
+      const response = await api.get('/reclamos/');
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Crear un nuevo reclamo
+  async createReclamo(reclamoData) {
+    try {
+      const response = await api.post('/reclamos/', reclamoData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Actualizar un reclamo
+  async updateReclamo(id, reclamoData) {
+    try {
+      const response = await api.put(`/reclamos/${id}/`, reclamoData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Eliminar un reclamo
+  async deleteReclamo(id) {
+    try {
+      const response = await api.delete(`/reclamos/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ===== EMPLEADOS =====
+  // Obtener todos los empleados
+  async getEmpleados() {
+    try {
+      const response = await api.get('/empleados/');
+      return Array.isArray(response.data) ? response.data : response.data.results || [];
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Crear un nuevo empleado
+  async createEmpleado(empleadoData) {
+    try {
+      const response = await api.post('/empleados/', empleadoData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Actualizar un empleado
+  async updateEmpleado(id, empleadoData) {
+    try {
+      const response = await api.put(`/empleados/${id}/`, empleadoData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Eliminar un empleado
+  async deleteEmpleado(id) {
+    try {
+      const response = await api.delete(`/empleados/${id}/`);
+      return response.data;
     } catch (error) {
       throw error;
     }

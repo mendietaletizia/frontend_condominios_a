@@ -5,8 +5,8 @@ import IniciarSesion from '../autenticacion/IniciarSesion';
 import Dashboard from '../components/Dashboard';
 import NotImplemented from '../components/NotImplemented';
 import ListaAreasComunes from '../mantenimiento/ListaAreasComunes';
-import ListaReservasResidente from '../mantenimiento/ListaReservasResidente';
-import ListaAreasDisponibles from '../mantenimiento/ListaAreasDisponibles';
+// Eliminados de la vista: ListaReservasResidente, ListaAreasDisponibles
+import TareasMantenimiento from '../mantenimiento/TareasMantenimiento';
 import ListaEventos from '../comunidad/ListaEventos';
 import ListaComunicados from '../comunidad/ListaComunicados';
 
@@ -18,11 +18,10 @@ import ListaEmpleados from '../usuarios/ListaEmpleados';
 import ListaUnidades from '../comunidad/ListaUnidades';
 import ListaMascotas from '../comunidad/ListaMascotas';
 import ListaVehiculos from '../comunidad/ListaVehiculos';
-import ListaGastos from '../economia/ListaGastos';
-import ListaMultas from '../economia/ListaMultas';
+// Eliminado de la vista: ListaGastos, ListaMultas
 import ReportesAnalitica from '../economia/ReportesAnalitica';
 import GestionCuotasFixed from '../finanzas/GestionCuotasFixed';
-import MisCuotas from '../finanzas/MisCuotas';
+// Eliminado de la vista: MisCuotas
 import GestionIngresos from '../finanzas/GestionIngresos';
 import DashboardAcceso from '../acceso/DashboardAcceso';
 import DashboardInvitados from '../invitados/DashboardInvitados';
@@ -186,22 +185,16 @@ const AppRouter = () => {
               </ProtectedRoute>
             } 
           />
+          {/* Rutas eliminadas de la vista: mis-reservas, areas-disponibles */}
           <Route 
-            path="mis-reservas" 
+            path="tareas-mantenimiento" 
             element={
-              <ProtectedRoute requiredRoles={['residente']}>
-                <ListaReservasResidente />
+              <ProtectedRoute requiredRoles={['administrador','empleado']}>
+                <TareasMantenimiento />
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="areas-disponibles" 
-            element={
-              <ProtectedRoute requiredRoles={['residente']}>
-                <ListaAreasDisponibles />
-              </ProtectedRoute>
-            } 
-          />
+          {/* Eliminadas rutas residuales que causaban error de referencia */}
 
           {/* ===== PAGOS Y FINANZAS ===== */}
           <Route 
@@ -213,28 +206,7 @@ const AppRouter = () => {
             } 
           />
           
-          <Route 
-            path="reportes-financieros" 
-            element={
-              <ProtectedRoute requiredRoles={['administrador']}>
-                <NotImplemented 
-                  title="CU18 - Reportes Financieros"
-                  description="Sistema de generación de reportes financieros y análisis de ingresos y gastos."
-                />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="presupuestos" 
-            element={
-              <ProtectedRoute requiredRoles={['administrador']}>
-                <NotImplemented 
-                  title="CU21 - Gestión de Presupuestos"
-                  description="Sistema de gestión y control de presupuestos anuales del condominio."
-                />
-              </ProtectedRoute>
-            } 
-          />
+          {/* Rutas eliminadas de la vista: reportes-financieros, presupuestos */}
           <Route 
             path="cuotas" 
             element={
@@ -243,32 +215,10 @@ const AppRouter = () => {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="mis-cuotas" 
-            element={
-              <ProtectedRoute requiredRoles={['residente']}>
-                <MisCuotas />
-              </ProtectedRoute>
-            } 
-          />
+          {/* Ruta eliminada de la vista: mis-cuotas */}
 
           {/* ===== GESTIÓN ECONÓMICA AVANZADA ===== */}
-          <Route 
-            path="gastos" 
-            element={
-              <ProtectedRoute requiredRoles={['administrador', 'empleado']}>
-                <ListaGastos />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="multas" 
-            element={
-              <ProtectedRoute requiredRoles={['administrador', 'empleado']}>
-                <ListaMultas />
-              </ProtectedRoute>
-            } 
-          />
+          {/* Rutas eliminadas de la vista: gastos, multas */}
           <Route 
             path="reportes-analitica" 
             element={
@@ -277,28 +227,7 @@ const AppRouter = () => {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="analisis-costos" 
-            element={
-              <ProtectedRoute requiredRoles={['administrador']}>
-                <NotImplemented 
-                  title="CU19 - Análisis de Costos"
-                  description="Sistema de análisis de costos operativos y optimización de gastos del condominio."
-                />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="proyecciones" 
-            element={
-              <ProtectedRoute requiredRoles={['administrador']}>
-                <NotImplemented 
-                  title="CU20 - Proyecciones Financieras"
-                  description="Sistema de proyecciones financieras y planificación económica a largo plazo."
-                />
-              </ProtectedRoute>
-            } 
-          />
+          {/* Rutas eliminadas de la vista: análisis-costos, proyecciones */}
 
           {/* ===== MANTENIMIENTO Y RESERVAS ===== */}
           <Route 

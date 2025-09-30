@@ -281,3 +281,101 @@
     padding: 12px 20px 12px 48px;
   }
 }
+
+/* ============================= */
+/* Estilos alineados al Sidebar.jsx */
+/* ============================= */
+
+.sidebar-content {
+  padding: 12px 10px 20px 10px;
+}
+
+.sidebar-section {
+  margin: 10px 8px 14px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.sidebar-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  user-select: none;
+  color: #ecf0f1;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.04);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-section-header:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-section-header .icon {
+  font-size: 16px;
+  width: 22px;
+  text-align: center;
+}
+
+.sidebar-section-header .label {
+  flex: 1;
+  font-size: 13px;
+}
+
+.sidebar-section-header .chevron {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.sidebar-menu {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.10);
+}
+
+.sidebar-item {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cfd8dc;
+  font-size: 12px;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(52, 152, 219, 0.45);
+  color: #ecf0f1;
+}
+
+.sidebar-item.active {
+  background: rgba(52, 152, 219, 0.20);
+  color: #eaf6ff;
+  border-color: rgba(52, 152, 219, 0.7);
+}
+
+/* Pequeños "cuadritos" en móviles o sidebar ancho */
+@media (min-width: 520px) and (max-width: 768px) {
+  .sidebar-menu {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 769px) {
+  /* Mantener 1 columna en 240px, pero si se aumenta el ancho, permitir 2 */
+  .sidebar {
+    /* si el ancho supera 280px, la grilla se adapta automáticamente */
+  }
+}

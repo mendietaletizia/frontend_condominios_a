@@ -12,6 +12,16 @@ export const accesoAPI = {
     }
   },
 
+  // Invitados activos hoy
+  getInvitadosActivos: async () => {
+    try {
+      const response = await api.get('/invitados/activos/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Registros de acceso
   getRegistrosAcceso: async (params = {}) => {
     try {
@@ -22,12 +32,42 @@ export const accesoAPI = {
     }
   },
 
-  registrarAcceso: async (placa, tipo = 'entrada') => {
+  registrarAcceso: async ({
+    placa_detectada,
+    ia_confidence = 90,
+    ia_placa_reconocida = true,
+    ia_vehiculo_reconocido = false,
+    tipo_acceso = 'entrada',
+    marca_detectada = '',
+    modelo_detectado = '',
+    color_detectado = '',
+    imagen_url = '',
+    imagen_path = '',
+    tiempo_procesamiento = 0,
+    observaciones = ''
+  }) => {
     try {
-      const response = await api.post('/registros-acceso/registrar/', {
-        placa: placa,
-        tipo: tipo
-      });
+      const payload = {
+        placa_detectada,
+        ia_confidence,
+        ia_placa_reconocida,
+        ia_vehiculo_reconocido,
+        tipo_acceso,
+        marca_detectada,
+        modelo_detectado,
+        color_detectado,
+        imagen_url,
+        imagen_path,
+        tiempo_procesamiento,
+        observaciones
+      };
+      let response;
+      try {
+        response = await api.post('/registros-acceso/registrar/', payload);
+      } catch (e) {
+        // Fallback al endpoint del action router
+        response = await api.post('/registros-acceso/registrar_acceso/', payload);
+      }
       return response.data;
     } catch (error) {
       throw error;
@@ -151,7 +191,36 @@ export const accesoAPI = {
     } catch (error) {
       throw error;
     }
-  }
+  },
+
+  // Gestión de registros de acceso
+  autorizarRegistro: async (id) => {
+    try {
+      const response = await api.post(`/registros-acceso/${id}/autorizar/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  denegarRegistro: async (id) => {
+    try {
+      const response = await api.post(`/registros-acceso/${id}/denegar/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  eliminarRegistro: async (id) => {
+    try {
+      const response = await api.delete(`/registros-acceso/${id}/eliminar/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
 };
 
 export default accesoAPI;

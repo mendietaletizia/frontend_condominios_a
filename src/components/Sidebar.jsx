@@ -34,22 +34,44 @@ const Sidebar = ({ isOpen, onToggle }) => {
         ]
       },
       {
-        id: 'comunidad',
-        label: 'Comunidad',
+        id: 'unidades_comunidad',
+        label: 'Unidades y Comunidad',
         icon: '🏘️',
         cases: [
-          { id: 'cu6', label: 'CU6 - Gestión de Unidades', path: '/unidades', implemented: true, roles: ['administrador'] },
-          { id: 'cu7', label: 'CU7 - Gestión de Vehículos', path: '/vehiculos', implemented: true, roles: ['administrador'] },
-          { id: 'cu11', label: 'CU11 - Eventos', path: '/eventos', implemented: true, roles: ['administrador'] },
-          { id: 'cu12', label: 'CU12 - Comunicados', path: '/reclamos', implemented: true, roles: ['administrador'] }
+          { id: 'cu_unidades', label: 'Gestión de Unidades', path: '/unidades', implemented: true, roles: ['administrador', 'empleado'] },
+          { id: 'cu_mascotas', label: 'Gestión de Mascotas', path: '/mascotas', implemented: true, roles: ['administrador', 'residente'] },
+          { id: 'cu_vehiculos', label: 'Gestión de Vehículos', path: '/vehiculos', implemented: true, roles: ['administrador'] },
+          { id: 'cu_eventos', label: 'Gestión de Eventos', path: '/eventos', implemented: true, roles: ['administrador'] },
+          { id: 'cu_comunicados', label: 'Gestión de Comunicados', path: '/reclamos', implemented: true, roles: ['administrador'] },
+          { id: 'cu_areas_comunes', label: 'Gestión de Áreas Comunes', path: '/areas-comunes', implemented: true, roles: ['administrador'] }
         ]
       },
       {
-        id: 'economia',
-        label: 'Economía y Finanzas',
-        icon: '💰',
+        id: 'pagosfinanzas',
+        label: 'Pagos y Finanzas',
+        icon: '💳',
         cases: [
-          { id: 'cu18', label: 'CU18 - Gestión de Ingresos', path: '/gestion-ingresos', implemented: true, roles: ['administrador'] },
+          { id: 'cu_ingresos', label: 'Gestión de Ingresos', path: '/gestion-ingresos', implemented: true, roles: ['administrador'] },
+          { id: 'cu_cuotas', label: 'Gestión de Cuotas', path: '/cuotas', implemented: true, roles: ['administrador'] },
+          // Eliminado de la vista: Mis Cuotas, Reportes y Presupuestos
+        ]
+      },
+      {
+        id: 'economica',
+        label: 'Gestión Económica Avanzada',
+        icon: '📊',
+        cases: [
+          // Eliminados de la vista: Gastos, Multas, Análisis de Costos, Proyecciones
+          { id: 'cu_reportes_analitica', label: 'Reportes y Analítica', path: '/reportes-analitica', implemented: true, roles: ['administrador'] }
+        ]
+      },
+      {
+        id: 'mantenimiento',
+        label: 'Mantenimiento y Reservas',
+        icon: '🛠️',
+        cases: [
+          { id: 'cu_areas_comunes', label: 'Áreas Comunes', path: '/areas-comunes', implemented: true, roles: ['administrador'] },
+          { id: 'cu_tareas_mantenimiento', label: 'Tareas de Mantenimiento', path: '/tareas-mantenimiento', implemented: true, roles: ['administrador', 'empleado'] }
         ]
       }
     ];
