@@ -315,5 +315,86 @@ export const comunidadAPI = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // Obtener lecturas confirmadas de un comunicado
+  async getLecturasConfirmadas(id) {
+    try {
+      const response = await api.get(`/notificaciones/${id}/lecturas_confirmadas/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ===== RESERVAS =====
+  // Obtener todas las reservas
+  async getReservas() {
+    try {
+      const response = await api.get('/reservas/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener una reserva por ID
+  async getReserva(id) {
+    try {
+      const response = await api.get(`/reservas/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Crear una nueva reserva
+  async createReserva(reservaData) {
+    try {
+      const response = await api.post('/reservas/', reservaData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Actualizar una reserva
+  async updateReserva(id, reservaData) {
+    try {
+      const response = await api.put(`/reservas/${id}/`, reservaData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Eliminar una reserva
+  async deleteReserva(id) {
+    try {
+      const response = await api.delete(`/reservas/${id}/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Confirmar una reserva
+  async confirmarReserva(id) {
+    try {
+      const response = await api.post(`/reservas/${id}/confirmar/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Cancelar una reserva
+  async cancelarReserva(id) {
+    try {
+      const response = await api.post(`/reservas/${id}/cancelar/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };

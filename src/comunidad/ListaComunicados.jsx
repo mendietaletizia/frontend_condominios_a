@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Table, Button, Space, Modal, Form, Input, DatePicker, Select, message, Tag, Checkbox, Divider, Popconfirm } from 'antd';
+import { Card, Table, Button, Space, Modal, Form, Input, DatePicker, Select, message, Tag, Checkbox, Divider, Popconfirm, List, Avatar, Spin } from 'antd';
 import dayjs from 'dayjs';
 import { comunidadAPI } from '../api/comunidad';
-import { NotificationOutlined, SendOutlined, PlusOutlined, UserOutlined, TeamOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { NotificationOutlined, SendOutlined, PlusOutlined, UserOutlined, TeamOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CheckCircleOutlined } from '@ant-design/icons';
 
 const ListaComunicados = () => {
   const [items, setItems] = useState([]);
@@ -12,6 +12,8 @@ const ListaComunicados = () => {
   const [viewingComunicado, setViewingComunicado] = useState(null);
   const [form] = Form.useForm();
   const [editingComunicado, setEditingComunicado] = useState(null);
+  const [lecturasConfirmadas, setLecturasConfirmadas] = useState([]);
+  const [loadingLecturas, setLoadingLecturas] = useState(false);
   
   // Estados para destinatarios
   const [destinatariosSeleccionados, setDestinatariosSeleccionados] = useState({
@@ -46,9 +48,21 @@ const ListaComunicados = () => {
     setIsModalVisible(true);
   };
 
-  const showViewModal = (comunicado) => {
+  const showViewModal = async (comunicado) => {
     setViewingComunicado(comunicado);
     setIsViewModalVisible(true);
+    
+    // Cargar lecturas confirmadas
+    setLoadingLecturas(true);
+    try {
+      const lecturas = await comunidadAPI.getLecturasConfirmadas(comunicado.id);
+      setLecturasConfirmadas(lecturas || []);
+    } catch (error) {
+      console.error('Error cargando lecturas:', error);
+      setLecturasConfirmadas([]);
+    } finally {
+      setLoadingLecturas(false);
+    }
   };
 
   const showEditModal = (comunicado) => {
@@ -163,6 +177,7 @@ const ListaComunicados = () => {
   const handleCancelViewModal = () => {
     setIsViewModalVisible(false);
     setViewingComunicado(null);
+    setLecturasConfirmadas([]);
   };
 
   const columns = [
@@ -372,6 +387,80 @@ const ListaComunicados = () => {
                 <strong>Creado:</strong> {dayjs(viewingComunicado.fecha_creacion).format('DD/MM/YYYY HH:mm')}
               </div>
             )}
+
+            <Divider />
+
+            <div>
+              <h4 style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                Lecturas Confirmadas ({lecturasConfirmadas.length})
+              </h4>
+              
+              {loadingLecturas ? (
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                  <Spin size="small" />
+                  <div style={{ marginTop: '8px', color: '#666' }}>Cargando lecturas...</div>
+                </div>
+              ) : lecturasConfirmadas.length > 0 ? (
+                <List
+                  size="small"
+                  dataSource={lecturasConfirmadas}
+                  renderItem={(lectura) => (
+                    <List.Item style={{ padding: '8px 0' }}>
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar 
+                            size="small" 
+                            style={{ 
+                              backgroundColor: 
+                                lectura.rol === 'residente' ? '#52c41a' :
+                                lectura.rol === 'empleado' ? '#1890ff' :
+                                lectura.rol === 'seguridad' ? '#f5222d' : '#d9d9d9'
+                            }}
+                          >
+                            {lectura.usuario_nombre?.charAt(0)?.toUpperCase() || 'U'}
+                          </Avatar>
+                        }
+                        title={
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontWeight: 500 }}>{lectura.usuario_nombre}</span>
+                            <Tag 
+                              size="small" 
+                              color={
+                                lectura.rol === 'residente' ? 'green' :
+                                lectura.rol === 'empleado' ? 'blue' :
+                                lectura.rol === 'seguridad' ? 'red' : 'default'
+                              }
+                            >
+                              {lectura.rol === 'residente' ? '👥 Residente' :
+                               lectura.rol === 'empleado' ? '👷 Empleado' :
+                               lectura.rol === 'seguridad' ? '🛡️ Seguridad' : lectura.rol}
+                            </Tag>
+                          </div>
+                        }
+                        description={
+                          <span style={{ fontSize: '12px', color: '#666' }}>
+                            Leído el {dayjs(lectura.fecha_lectura).format('DD/MM/YYYY HH:mm')}
+                          </span>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '20px', 
+                  color: '#999',
+                  backgroundColor: '#fafafa',
+                  borderRadius: '6px',
+                  border: '1px dashed #d9d9d9'
+                }}>
+                  <CheckCircleOutlined style={{ fontSize: '24px', marginBottom: '8px' }} />
+                  <div>Ningún usuario ha confirmado la lectura aún</div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </Modal>

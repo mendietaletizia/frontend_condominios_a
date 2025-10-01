@@ -17,9 +17,35 @@ const ListaEventos = () => {
   const [searchText, setSearchText] = useState('');
   const [areas, setAreas] = useState([]);
 
+  // Extrae solo el nombre del residente desde una descripción larga
+  const extractNombreFromDescripcion = (text) => {
+    try {
+      if (!text) return null;
+      const dRaw = String(text).replace(/\s+/g, ' ').trim();
+      // Tomar la última ocurrencia de ' por '
+      const idx = dRaw.toLowerCase().lastIndexOf(' por ');
+      if (idx === -1) return null;
+      let tail = dRaw.substring(idx + 5).trim();
+      // Cortar en (CI:, ' Residente', o primer punto
+      const cutPoints = [
+        tail.search(/\(CI:/i),
+        tail.search(/\sResidente\b/i),
+        tail.indexOf('.')
+      ].filter(n => n >= 0);
+      if (cutPoints.length) {
+        const cut = Math.min(...cutPoints);
+        tail = tail.substring(0, cut).trim();
+      }
+      return tail || null;
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
     load();
     loadReservas();
+    // Cargar áreas desde mantenimiento (siguen ahí)
     mantenimientoAPI.getAreasComunes().then((data) => {
       const list = Array.isArray(data) ? data : (data?.results || []);
       setAreas(list);
@@ -41,7 +67,7 @@ const ListaEventos = () => {
 
   const loadReservas = async () => {
     try {
-      const data = await mantenimientoAPI.getReservas();
+      const data = await comunidadAPI.getReservas();
       setReservas(Array.isArray(data) ? data : (data?.results || []));
     } catch (e) {
       console.error('Error al cargar reservas:', e);
@@ -90,9 +116,25 @@ const ListaEventos = () => {
 
   const handleDelete = async (row) => {
     try {
-      await comunidadAPI.deleteEvento(row.id);
-      message.success('Evento eliminado');
-      load();
+      if (row.tipo === 'reserva') {
+        // Usar la API de comunidad para eliminar reservas
+        await comunidadAPI.deleteReserva(row.id);
+        message.success('Reserva eliminada');
+        loadReservas();
+      } else {
+        // Si es un evento, intentar encontrar una Reserva asociada en la descripción
+        try {
+          const desc = row.descripcion || '';
+          const match = desc.match(/Reserva ID:\s*(\d+)/i);
+          if (match && match[1]) {
+            await comunidadAPI.deleteReserva(Number(match[1]));
+          }
+        } catch (_) {}
+        await comunidadAPI.deleteEvento(row.id);
+        message.success('Evento eliminado');
+        load();
+        loadReservas();
+      }
     } catch (e) {
       message.error('No se pudo eliminar');
     }
@@ -100,7 +142,7 @@ const ListaEventos = () => {
 
   const handleConfirmarReserva = async (reserva) => {
     try {
-      await mantenimientoAPI.confirmarReserva(reserva.id);
+      await comunidadAPI.confirmarReserva(reserva.id);
       message.success('Reserva confirmada y evento creado');
       load();
       loadReservas();
@@ -111,7 +153,7 @@ const ListaEventos = () => {
 
   const handleCancelarReserva = async (reserva) => {
     try {
-      await mantenimientoAPI.cancelarReserva(reserva.id);
+      await comunidadAPI.cancelarReserva(reserva.id);
       message.success('Reserva cancelada');
       loadReservas();
     } catch (e) {
@@ -120,17 +162,26 @@ const ListaEventos = () => {
   };
 
   // Combinar eventos y reservas para mostrar en una sola tabla
+  // Solo mostrar reservas pendientes y canceladas, no las confirmadas (ya aparecen como eventos)
+  const reservasFiltradas = reservas.filter(res => res.estado === 'pendiente' || res.estado === 'cancelada');
+  
   const combinedData = [
-    ...eventos.map(ev => ({ ...ev, tipo: 'evento' })),
-    ...reservas.map(res => ({ 
+    // Agregar un campo residente_nombre_simple ya parseado para eventos
+    ...eventos.map(ev => ({ ...ev, tipo: 'evento', residente_nombre_simple: extractNombreFromDescripcion(ev.descripcion) })),
+    ...reservasFiltradas.map(res => ({ 
       ...res, 
       tipo: 'reserva',
-      titulo: `Reserva: ${res.area?.nombre || 'Área'}`,
-      descripcion: `Reserva del área ${res.area?.nombre || 'N/A'} el ${res.fecha} de ${res.hora_inicio} a ${res.hora_fin} por ${res.residente?.persona?.nombre || 'Residente'}`,
+      titulo: `Reserva: ${res.nombre_area || res.area_nombre || 'Área'}`,
+      descripcion: `Reserva del área ${res.nombre_area || res.area_nombre || 'N/A'} el ${res.fecha} de ${res.hora_inicio} a ${res.hora_fin} por ${res.nombre_completo_residente || res.residente_nombre || 'Residente'}`,
       fecha: `${res.fecha}T${res.hora_inicio}`,
       estado: res.estado === 'pendiente' ? false : true
     }))
   ];
+
+  // Debug: verificar duplicados
+  console.log('Eventos:', eventos.length);
+  console.log('Reservas:', reservas.length);
+  console.log('Combined:', combinedData.length);
 
   const filtered = combinedData.filter(item => !searchText ||
     item.titulo?.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -140,7 +191,29 @@ const ListaEventos = () => {
   const columns = [
     { title: 'ID', dataIndex: 'id', key: 'id', width: 60, responsive: ['lg'] },
     { title: 'Título', dataIndex: 'titulo', key: 'titulo', width: 200, render: (t) => <strong style={{fontSize: '12px'}}>{t}</strong> },
-    { title: 'Descripción', dataIndex: 'descripcion', key: 'descripcion', width: 300, responsive: ['md'] },
+    {
+      title: 'Descripción',
+      dataIndex: 'descripcion',
+      key: 'descripcion',
+      width: 300,
+      responsive: ['md'],
+      render: (text, record) => {
+        if (!text) return '-';
+        if (record.tipo === 'evento') {
+          try {
+            const areaMatch = text.match(/área\s(.+?)\sde/i);
+            const horasMatch = text.match(/de\s([0-9:]+)\s+a\s+([0-9:]+)/i);
+            const area = areaMatch ? areaMatch[1] : '';
+            const h1 = horasMatch ? horasMatch[1] : '';
+            const h2 = horasMatch ? horasMatch[2] : '';
+            if (area || h1) {
+              return `Reserva del área ${area || ''} de ${h1 || ''} a ${h2 || ''}`.trim();
+            }
+          } catch (_) {}
+        }
+        return text;
+      }
+    },
     { 
       title: 'Tipo', 
       key: 'tipo', 
@@ -168,15 +241,13 @@ const ListaEventos = () => {
       key: 'residente', 
       width: 150,
       render: (_, record) => {
-        if (record.tipo === 'reserva' && record.residente?.persona?.nombre) {
-          return <Tag color="orange">{record.residente.persona.nombre}</Tag>;
+        if (record.tipo === 'reserva') {
+          const nombreResidente = record.nombre_completo_residente || record.residente_nombre || record.residente?.persona?.nombre;
+          return nombreResidente ? <Tag color="orange">{nombreResidente}</Tag> : '-';
         }
-        if (record.tipo === 'evento' && record.descripcion) {
-          // Extraer nombre del residente de la descripción del evento
-          const match = record.descripcion.match(/por (.+?) \(CI:/);
-          if (match) {
-            return <Tag color="orange">{match[1]}</Tag>;
-          }
+        if (record.tipo === 'evento') {
+          const name = record.residente_nombre_simple || extractNombreFromDescripcion(record.descripcion);
+          return name ? <Tag color="orange">{name}</Tag> : '-';
         }
         return '-';
       }
@@ -187,12 +258,21 @@ const ListaEventos = () => {
       key: 'areas', 
       width: 150, 
       render: (_, r) => {
-        if (!r.areas_info || r.areas_info.length === 0) return '-';
-        return r.areas_info.map(area => (
-          <Tag key={area.id} color="blue" style={{ margin: '2px' }}>
-            {area.nombre}
-          </Tag>
-        ));
+        if (r.tipo === 'reserva') {
+          const nombreArea = r.nombre_area || r.area_nombre;
+          if (nombreArea) {
+            return <Tag color="blue">{nombreArea}</Tag>;
+          }
+          return '-';
+        }
+        if (r.tipo === 'evento' && r.areas_info && r.areas_info.length > 0) {
+          return r.areas_info.map(area => (
+            <Tag key={area.id} color="blue" style={{ margin: '2px' }}>
+              {area.nombre}
+            </Tag>
+          ));
+        }
+        return '-';
       }
     },
     { title: 'Estado', dataIndex: 'estado', key: 'estado', width: 90, align: 'center', render: (s) => <Tag color={s ? 'green' : 'default'}>{s ? 'ACTIVO' : 'INACTIVO'}</Tag> },
@@ -225,6 +305,26 @@ const ListaEventos = () => {
                   Cancelar
                 </Button>
               )}
+              {/* Agregar acciones de editar/eliminar para reservas también */}
+              <Button 
+                type="link" 
+                size="small" 
+                icon={<EditOutlined />} 
+                onClick={() => showModal(r)} 
+                style={{padding:'4px 6px', fontSize:'11px'}}
+              >
+                Editar
+              </Button>
+              <Button 
+                type="link" 
+                danger 
+                size="small" 
+                icon={<DeleteOutlined />} 
+                onClick={() => handleDelete(r)} 
+                style={{padding:'4px 6px', fontSize:'11px'}}
+              >
+                Eliminar
+              </Button>
             </Space>
           );
         }
