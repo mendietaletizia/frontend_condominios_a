@@ -194,27 +194,47 @@ export const accesoAPI = {
   },
 
   // Gestión de registros de acceso
-  autorizarRegistro: async (id) => {
+  autorizarRegistro: async (id: number) => {
     try {
-      const response = await api.post(`/registros-acceso/${id}/autorizar/`);
+      const response = await api.post(`/registros-acceso/${id}/autorizar_manual/`);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  denegarRegistro: async (id) => {
+  denegarRegistro: async (id: number) => {
     try {
-      const response = await api.post(`/registros-acceso/${id}/denegar/`);
+      const response = await api.post(`/registros-acceso/${id}/denegar_manual/`);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  eliminarRegistro: async (id) => {
+  eliminarRegistro: async (id: number) => {
     try {
-      const response = await api.delete(`/registros-acceso/${id}/eliminar/`);
+      const response = await api.delete(`/registros-acceso/${id}/eliminar_registro/`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener placas registradas (para debugging)
+  getPlacasRegistradas: async () => {
+    try {
+      const response = await api.get('/registros-acceso/placas_registradas/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Obtener lista unificada de placas autorizadas
+  getListaPlacasAutorizadas: async () => {
+    try {
+      const response = await api.get('/registros-acceso/lista-placas-autorizadas/');
       return response.data;
     } catch (error) {
       throw error;

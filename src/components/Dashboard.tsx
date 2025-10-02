@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { economiaAPI, finanzasAPI, comunidadAPI } from '../api';
+import { economiaAPI, comunidadAPI } from '../api';
+import type { DashboardStats } from '../types';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const { user, canAccess } = useAuth();
-  const [stats, setStats] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats>({});
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     loadDashboardData();
@@ -158,3 +159,6 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+
+

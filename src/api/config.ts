@@ -1,7 +1,7 @@
 // Configuración de la API
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL: string = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // Crear instancia de axios
 const api = axios.create({
@@ -30,13 +30,13 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     // Log de respuestas exitosas en desarrollo
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
     }
     return response;
   },
   (error) => {
     // Log de errores en desarrollo
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.error('API Error:', error.config?.url, error.response?.status, error.response?.data);
     }
 
@@ -66,7 +66,7 @@ api.interceptors.response.use(
 // Funciones de utilidad para la API
 export const apiUtils = {
   // Verificar si el servidor está disponible
-  async checkServerStatus() {
+  async checkServerStatus(): Promise<boolean> {
     try {
       const response = await api.get('/');
       return response.status === 200;
@@ -76,7 +76,7 @@ export const apiUtils = {
   },
 
   // Obtener información del usuario actual
-  async getCurrentUser() {
+  async getCurrentUser(): Promise<any> {
     try {
       const response = await api.get('/user/');
       return response.data;
@@ -86,7 +86,7 @@ export const apiUtils = {
   },
 
   // Manejar errores de forma consistente
-  handleError(error) {
+  handleError(error: any): string {
     if (error.response?.data?.detail) {
       return error.response.data.detail;
     } else if (error.response?.data?.error) {

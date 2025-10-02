@@ -1,6 +1,6 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import type { ProtectedRouteProps, PublicRouteProps } from '../types';
 import IniciarSesion from '../autenticacion/IniciarSesion';
 import Dashboard from '../components/Dashboard';
 import NotImplemented from '../components/NotImplemented';
@@ -28,7 +28,7 @@ import DashboardInvitados from '../invitados/DashboardInvitados';
 import Layout from '../components/Layout';
 
 // Componente para rutas protegidas
-const ProtectedRoute = ({ children, requiredRoles = [] }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles = [] }) => {
   const { isAuthenticated, canAccess } = useAuth();
 
   if (!isAuthenticated) {
@@ -47,7 +47,7 @@ const ProtectedRoute = ({ children, requiredRoles = [] }) => {
 };
 
 // Componente para rutas públicas (solo accesibles sin autenticación)
-const PublicRoute = ({ children }) => {
+const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
 
   if (isAuthenticated) {

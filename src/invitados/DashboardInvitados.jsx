@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Table, Button, Space, Tag, Alert, Modal, Form, Input, DatePicker, Select, message, Popconfirm } from 'antd';
+import { Card, Row, Col, Statistic, Table, Button, Space, Tag, Alert, Modal, Form, Input, Select, message, Popconfirm } from 'antd';
 import { CarOutlined, UserOutlined, PlusOutlined, EditOutlined, DeleteOutlined, CheckCircleOutlined, ClockCircleOutlined, ExclamationCircleOutlined, LoginOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import invitadosAPI from '../api/invitados';
-import moment from 'moment';
 import './DashboardInvitados.css';
 
 const { Option } = Select;
@@ -52,11 +51,6 @@ const DashboardInvitados = () => {
   };
 
   const getEstadoTag = (record) => {
-    const ahora = moment();
-    const inicio = record?.fecha_inicio ? moment(record.fecha_inicio) : null;
-    const fin = record?.fecha_fin ? moment(record.fecha_fin) : null;
-    const estaDentroDeVigencia = inicio && inicio.isSameOrBefore(ahora) && (!fin || fin.isSameOrAfter(ahora));
-
     let color = 'default';
     let texto = 'Inactivo';
 
@@ -64,15 +58,9 @@ const DashboardInvitados = () => {
       if (record.check_in_at && !record.check_out_at) {
         color = 'processing';
         texto = 'En condominio';
-      } else if (estaDentroDeVigencia) {
+      } else {
         color = 'success';
         texto = 'Vigente';
-      } else if (fin && fin.isBefore(ahora)) {
-        color = 'error';
-        texto = 'Vencido';
-      } else {
-        color = 'warning';
-        texto = 'Pendiente';
       }
     }
 
@@ -87,8 +75,6 @@ const DashboardInvitados = () => {
         ci: invitado.ci,
         tipo: invitado.tipo,
         vehiculo_placa: invitado.vehiculo_placa,
-        fecha_inicio: invitado.fecha_inicio ? moment(invitado.fecha_inicio) : null,
-        fecha_fin: invitado.fecha_fin ? moment(invitado.fecha_fin) : null,
         activo: invitado.activo,
       });
     } else {
@@ -108,8 +94,6 @@ const DashboardInvitados = () => {
     try {
       const payload = {
         ...values,
-        fecha_inicio: values.fecha_inicio ? values.fecha_inicio.format('YYYY-MM-DDTHH:mm:ss') : null,
-        fecha_fin: values.fecha_fin ? values.fecha_fin.format('YYYY-MM-DDTHH:mm:ss') : null,
       };
 
       if (editingInvitado) {
@@ -203,18 +187,6 @@ const DashboardInvitados = () => {
       title: 'Residente',
       key: 'residente',
       render: (_, r) => r.residente_info?.nombre || '—'
-    },
-    {
-      title: 'Inicio',
-      dataIndex: 'fecha_inicio',
-      key: 'fecha_inicio',
-      render: (f) => f ? moment(f).format('DD/MM/YYYY HH:mm') : '—'
-    },
-    {
-      title: 'Fin',
-      dataIndex: 'fecha_fin',
-      key: 'fecha_fin',
-      render: (f) => f ? moment(f).format('DD/MM/YYYY HH:mm') : '—'
     },
     {
       title: 'Estado',
@@ -336,18 +308,6 @@ const DashboardInvitados = () => {
             <Col span={12}>
               <Form.Item name="vehiculo_placa" label="Placa (opcional)"> 
                 <Input placeholder="ABC-1234" />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="fecha_inicio" label="Fecha inicio" rules={[{ required: true, message: 'Seleccione fecha inicio' }]}> 
-                <DatePicker showTime format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="fecha_fin" label="Fecha fin (opcional)"> 
-                <DatePicker showTime format="DD/MM/YYYY HH:mm" style={{ width: '100%' }} />
               </Form.Item>
             </Col>
           </Row>

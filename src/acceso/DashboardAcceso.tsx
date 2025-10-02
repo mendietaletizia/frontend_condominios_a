@@ -1,12 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Table, Button, Space, Tag, Progress, Alert, Modal, Popconfirm } from 'antd';
+import { useState, useEffect, useRef } from 'react';
+import { Card, Row, Col, Statistic, Table, Button, Space, Tag, Progress, Alert, Modal, Popconfirm, notification } from 'antd';
 import { CarOutlined, UserOutlined, CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined, VideoCameraOutlined, DeleteOutlined, BarChartOutlined, SearchOutlined } from '@ant-design/icons';
 import accesoAPI from '../api/acceso';
 import { Input, Upload, message } from 'antd';
 import { CameraOutlined, UploadOutlined } from '@ant-design/icons';
+import type { DashboardStats } from '../types';
 import './DashboardAcceso.css';
+// Tipos para el componente
+interface RegistroAcceso {
+  id: number;
+  placa_detectada: string;
+  tipo_acceso: 'entrada' | 'salida';
+  estado_acceso: 'autorizado' | 'denegado' | 'pendiente';
+  ia_confidence: number;
+  fecha_hora: string;
+  mensaje?: string;
+  tipo_propietario?: string;
+  propietario_nombre?: string;
+  vehiculo_info?: string;
+  visitante_nombre?: string;
+}
+
+interface DashboardData {
+  estadisticas: {
+    total_registros: number;
+    registros_hoy: number;
+    tasa_exito: number;
+    pendientes: number;
+    autorizados: number;
+    denegados: number;
+  };
+  placas: {
+    residentes_activas: number;
+    invitados_activos: number;
+  };
+  ultimos_registros: RegistroAcceso[];
+}
+
 // Carga diferida para evitar errores de resolución iniciales
-let __tesseractPromise = null;
+let __tesseractPromise: Promise<any> | null = null;
 const loadTesseract = () => {
   if (!__tesseractPromise) {
     __tesseractPromise = import('tesseract.js');
@@ -14,23 +46,39 @@ const loadTesseract = () => {
   return __tesseractPromise;
 };
 
-const DashboardAcceso = () => {
-  const [dashboardData, setDashboardData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [capturando, setCapturando] = useState(false);
-  const [placaManual, setPlacaManual] = useState('');
-  const [cameraOpen, setCameraOpen] = useState(false);
-  const [capturedImage, setCapturedImage] = useState('');
-  const videoRef = React.useRef(null);
-  const canvasRef = React.useRef(null);
+const DashboardAcceso: React.FC = () => {
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [capturando, setCapturando] = useState<boolean>(false);
+  const [placaManual, setPlacaManual] = useState<string>('');
+  const [cameraOpen, setCameraOpen] = useState<boolean>(false);
+  const [capturedImage, setCapturedImage] = useState<string>('');
+  const [placasRegistradas, setPlacasRegistradas] = useState<any>(null);
+  const [mostrarPlacas, setMostrarPlacas] = useState<boolean>(false);
+  const [vehiculosAutorizados, setVehiculosAutorizados] = useState<any[]>([]);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     cargarDashboard();
+    cargarVehiculosAutorizados();
     // Actualizar cada 30 segundos
-    const interval = setInterval(cargarDashboard, 30000);
+    const interval = setInterval(() => {
+      cargarDashboard();
+      cargarVehiculosAutorizados();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  const cargarVehiculosAutorizados = async () => {
+    try {
+      const data = await accesoAPI.getListaPlacasAutorizadas();
+      setVehiculosAutorizados(data.placas_autorizadas || []);
+    } catch (err) {
+      console.error('Error al cargar vehículos autorizados:', err);
+    }
+  };
 
   const cargarDashboard = async () => {
     try {
@@ -43,6 +91,17 @@ const DashboardAcceso = () => {
       console.error('Error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const cargarPlacasRegistradas = async () => {
+    try {
+      const data = await accesoAPI.getPlacasRegistradas();
+      setPlacasRegistradas(data);
+      setMostrarPlacas(true);
+    } catch (err) {
+      message.error('Error al cargar placas registradas');
+      console.error('Error:', err);
     }
   };
 
@@ -74,12 +133,10 @@ const DashboardAcceso = () => {
         ia_vehiculo_reconocido: false,
         tipo_acceso: 'entrada'
       });
-      const placa = data.placa_detectada || placaManual.trim().toUpperCase();
-      if ((data.estado_acceso || '').toLowerCase() === 'autorizado') {
-        message.success(`Vehículo registrado (placa ${placa}). Entrada exitosa.`);
-      } else {
-        message.error(`Placa ${placa}: Vehículo no autorizado.`);
-      }
+      
+      // Mostrar modal de resultado
+      mostrarResultadoAcceso(data);
+      
       cargarDashboard();
       setPlacaManual('');
     } catch (e) {
@@ -88,12 +145,16 @@ const DashboardAcceso = () => {
     }
   };
 
-  const beforeUpload = async (file) => {
+  const beforeUpload = async (file: any) => {
     try {
       const reader = new FileReader();
-      reader.onload = async (e) => {
+      reader.onload = async (e: any) => {
         const dataUrl = e.target.result;
         setCapturedImage(dataUrl);
+        
+        message.loading('Procesando imagen y detectando placa...', 0);
+        
+        try {
         const { default: Tesseract } = await loadTesseract();
         const { data: { text } } = await Tesseract.recognize(dataUrl, 'eng', { logger: () => {} });
         const raw = (text || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -102,11 +163,50 @@ const DashboardAcceso = () => {
           const m = raw.match(/[A-Z0-9]{5,8}/);
           if (m) placa = m[0];
         }
+          
+          message.destroy(); // Limpiar mensaje de loading
+          
         if (placa && placa.length >= 5) {
           setPlacaManual(placa);
           message.success(`Placa detectada: ${placa}`);
+            
+            // Auto-registrar si se detectó una placa válida
+            Modal.confirm({
+              title: '🔍 Placa Detectada',
+              content: (
+                <div>
+                  <p>Se detectó la placa: <strong>{placa}</strong></p>
+                  <p>¿Desea registrar el acceso automáticamente?</p>
+                </div>
+              ),
+              okText: 'Registrar Acceso',
+              cancelText: 'Solo Detectar',
+              onOk: async () => {
+                try {
+                  const data = await accesoAPI.registrarAcceso({
+                    placa_detectada: placa.toUpperCase(),
+                    ia_confidence: 85,
+                    ia_placa_reconocida: true,
+                    ia_vehiculo_reconocido: false,
+                    tipo_acceso: 'entrada',
+                    imagen_url: dataUrl
+                  });
+                  
+                  mostrarResultadoAcceso(data);
+                  cargarDashboard();
+                  setPlacaManual('');
+                  setCapturedImage('');
+                } catch (error) {
+                  message.error('Error al registrar acceso');
+                }
+              }
+            });
         } else {
-          message.info('No se detectó una placa clara. Puede editar manualmente.');
+            message.info('No se detectó una placa clara. Puede escribirla manualmente.');
+          }
+        } catch (ocrError) {
+          message.destroy();
+          message.error('Error al procesar la imagen con OCR');
         }
       };
       reader.readAsDataURL(file);
@@ -487,6 +587,156 @@ const DashboardAcceso = () => {
     }
   };
 
+  // Función para mostrar modal de resultado
+  const mostrarResultadoAcceso = (data: any) => {
+    const placa = data.placa_detectada || placaManual.trim().toUpperCase();
+    
+    if (data.estado_acceso === 'autorizado') {
+      // Modal de éxito para vehículo autorizado
+      Modal.success({
+        title: '🚗 VEHÍCULO AUTORIZADO',
+        width: 500,
+        content: (
+          <div style={{ padding: '20px 0' }}>
+            <div style={{ 
+              textAlign: 'center', 
+              fontSize: '24px', 
+              fontWeight: 'bold', 
+              color: '#52c41a',
+              marginBottom: '20px'
+            }}>
+              ✅ ACCESO PERMITIDO
+            </div>
+            <div style={{ fontSize: '16px', marginBottom: '10px' }}>
+              <strong>Placa:</strong> {placa}
+            </div>
+            {data.tipo_propietario === 'residente' && (
+              <>
+                <div style={{ fontSize: '16px', marginBottom: '10px' }}>
+                  <strong>Propietario:</strong> {data.propietario_nombre}
+                </div>
+                <div style={{ fontSize: '16px', marginBottom: '10px' }}>
+                  <strong>Vehículo:</strong> {data.vehiculo_info}
+                </div>
+              </>
+            )}
+            {data.tipo_propietario === 'invitado' && (
+              <>
+                <div style={{ fontSize: '16px', marginBottom: '10px' }}>
+                  <strong>Visitante:</strong> {data.visitante_nombre}
+                </div>
+                <div style={{ fontSize: '16px', marginBottom: '10px' }}>
+                  <strong>Autorizado por:</strong> {data.propietario_nombre}
+                </div>
+                <div style={{ fontSize: '16px', marginBottom: '10px' }}>
+                  <strong>Vehículo:</strong> {data.vehiculo_info}
+                </div>
+              </>
+            )}
+            <div style={{ 
+              marginTop: '20px', 
+              padding: '10px', 
+              backgroundColor: '#f6ffed', 
+              borderRadius: '6px',
+              border: '1px solid #b7eb8f'
+            }}>
+              {data.mensaje || 'Vehículo registrado en el sistema'}
+            </div>
+          </div>
+        ),
+        okText: 'Entendido',
+        onOk: () => {
+          notification.success({
+            message: 'Acceso Registrado',
+            description: `Entrada autorizada para ${placa}`,
+            placement: 'topRight',
+            duration: 4
+          });
+        }
+      });
+    } else if (data.estado_acceso === 'pendiente') {
+      // Modal de advertencia para vehículo pendiente
+      Modal.warning({
+        title: '⏳ VEHÍCULO NO REGISTRADO',
+        width: 500,
+        content: (
+          <div style={{ padding: '20px 0' }}>
+            <div style={{ 
+              textAlign: 'center', 
+              fontSize: '24px', 
+              fontWeight: 'bold', 
+              color: '#faad14',
+              marginBottom: '20px'
+            }}>
+              ⚠️ REQUIERE AUTORIZACIÓN
+            </div>
+            <div style={{ fontSize: '16px', marginBottom: '10px' }}>
+              <strong>Placa:</strong> {placa}
+            </div>
+            <div style={{ 
+              marginTop: '20px', 
+              padding: '10px', 
+              backgroundColor: '#fffbe6', 
+              borderRadius: '6px',
+              border: '1px solid #ffe58f'
+            }}>
+              Esta placa no está registrada en el sistema. El administrador o personal de seguridad debe autorizar manualmente el acceso.
+            </div>
+          </div>
+        ),
+        okText: 'Entendido',
+        onOk: () => {
+          notification.warning({
+            message: 'Acceso Pendiente',
+            description: `Placa ${placa} requiere autorización manual`,
+            placement: 'topRight',
+            duration: 6
+          });
+        }
+      });
+    } else {
+      // Modal de error para vehículo denegado
+      Modal.error({
+        title: '🚫 ACCESO DENEGADO',
+        width: 500,
+        content: (
+          <div style={{ padding: '20px 0' }}>
+            <div style={{ 
+              textAlign: 'center', 
+              fontSize: '24px', 
+              fontWeight: 'bold', 
+              color: '#ff4d4f',
+              marginBottom: '20px'
+            }}>
+              ❌ ACCESO NO AUTORIZADO
+            </div>
+            <div style={{ fontSize: '16px', marginBottom: '10px' }}>
+              <strong>Placa:</strong> {placa}
+            </div>
+            <div style={{ 
+              marginTop: '20px', 
+              padding: '10px', 
+              backgroundColor: '#fff2f0', 
+              borderRadius: '6px',
+              border: '1px solid #ffccc7'
+            }}>
+              {data.mensaje || 'Esta placa no está autorizada para ingresar al condominio.'}
+            </div>
+          </div>
+        ),
+        okText: 'Entendido',
+        onOk: () => {
+          notification.error({
+            message: 'Acceso Denegado',
+            description: `Placa ${placa} no autorizada`,
+            placement: 'topRight',
+            duration: 4
+          });
+        }
+      });
+    }
+  };
+
   const onRegistrarDesdeCamara = async () => {
     try {
       if (!placaManual || placaManual.trim().length < 4) {
@@ -503,31 +753,9 @@ const DashboardAcceso = () => {
         imagen_url: capturedImage
       });
       
-      // Mostrar resultado detallado basado en la respuesta del backend
-      if (data.mensaje) {
-        if (data.estado_acceso === 'autorizado') {
-          message.success(data.mensaje);
-          
-          // Mostrar información adicional si está disponible
-          if (data.tipo_propietario === 'residente') {
-            message.info(`Propietario: ${data.propietario_nombre} | Vehículo: ${data.vehiculo_info}`);
-          } else if (data.tipo_propietario === 'invitado') {
-            message.info(`Invitado: ${data.visitante_nombre} | Autorizado por: ${data.propietario_nombre}`);
-          }
-        } else if (data.estado_acceso === 'pendiente') {
-          message.warning(data.mensaje);
-        } else {
-          message.error(data.mensaje);
-        }
-      } else {
-        // Fallback para respuestas sin mensaje personalizado
-        const placa = data.placa_detectada || placaManual.trim().toUpperCase();
-        if ((data.estado_acceso || '').toLowerCase() === 'autorizado') {
-          message.success(`✅ ACCESO AUTORIZADO - Placa ${placa}`);
-        } else {
-          message.error(`❌ ACCESO DENEGADO - Placa ${placa} no registrada`);
-        }
-      }
+      // Mostrar modal de resultado
+      mostrarResultadoAcceso(data);
+      
       setPlacaManual('');
       setCapturedImage('');
       closeCamera();
@@ -720,6 +948,9 @@ const DashboardAcceso = () => {
           <Upload beforeUpload={beforeUpload} showUploadList={false} accept="image/*">
             <Button icon={<UploadOutlined />}>Subir Imagen (Demo)</Button>
           </Upload>
+          <Button icon={<SearchOutlined />} onClick={cargarPlacasRegistradas}>
+            Ver Placas Registradas
+          </Button>
         </Space>
       </div>
 
@@ -846,6 +1077,175 @@ const DashboardAcceso = () => {
             </Button>
           </Space>
         </div>
+      </Modal>
+
+      {/* Modal para mostrar placas registradas */}
+      <Modal
+        title="📋 Placas Registradas en el Sistema"
+        open={mostrarPlacas}
+        onCancel={() => setMostrarPlacas(false)}
+        footer={[
+          <Button key="close" onClick={() => setMostrarPlacas(false)}>
+            Cerrar
+          </Button>
+        ]}
+        width={1000}
+      >
+        {placasRegistradas && (
+          <div>
+            {/* Resumen */}
+            <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+              <Col span={6}>
+                <Card size="small">
+                  <Statistic
+                    title="Residentes"
+                    value={placasRegistradas.sistema_acceso?.total_residentes || 0}
+                    prefix={<UserOutlined />}
+                    valueStyle={{ color: '#1890ff' }}
+                  />
+                </Card>
+              </Col>
+              <Col span={6}>
+                <Card size="small">
+                  <Statistic
+                    title="Invitados"
+                    value={placasRegistradas.sistema_acceso?.total_invitados || 0}
+                    prefix={<CarOutlined />}
+                    valueStyle={{ color: '#52c41a' }}
+                  />
+                </Card>
+              </Col>
+              <Col span={6}>
+                <Card size="small">
+                  <Statistic
+                    title="Vehículos Originales"
+                    value={placasRegistradas.gestion_original?.total_vehiculos || 0}
+                    prefix={<CarOutlined />}
+                    valueStyle={{ color: '#faad14' }}
+                  />
+                </Card>
+              </Col>
+              <Col span={6}>
+                <Card size="small">
+                  <Statistic
+                    title="Total Placas"
+                    value={placasRegistradas.total_general?.total_placas || 0}
+                    prefix={<BarChartOutlined />}
+                    valueStyle={{ color: '#722ed1' }}
+                  />
+                </Card>
+              </Col>
+            </Row>
+
+            {/* Placas de Residentes */}
+            <Card title="🏠 Placas de Residentes" style={{ marginBottom: 16 }}>
+              <Table
+                dataSource={placasRegistradas.sistema_acceso?.placas_residentes || []}
+                columns={[
+                  {
+                    title: 'Placa',
+                    dataIndex: 'placa',
+                    key: 'placa',
+                    render: (placa: string) => <Tag color="blue" style={{ fontSize: '14px' }}>{placa}</Tag>
+                  },
+                  {
+                    title: 'Vehículo',
+                    key: 'vehiculo',
+                    render: (record: any) => `${record.marca} ${record.modelo} (${record.color})`
+                  },
+                  {
+                    title: 'Propietario',
+                    dataIndex: 'residente_nombre',
+                    key: 'residente_nombre'
+                  },
+                  {
+                    title: 'Fecha Registro',
+                    dataIndex: 'fecha_registro',
+                    key: 'fecha_registro',
+                    render: (fecha: string) => new Date(fecha).toLocaleDateString()
+                  }
+                ]}
+                pagination={false}
+                size="small"
+                rowKey="id"
+              />
+            </Card>
+
+            {/* Placas de Invitados */}
+            <Card title="👥 Placas de Invitados" style={{ marginBottom: 16 }}>
+              <Table
+                dataSource={placasRegistradas.sistema_acceso?.placas_invitados || []}
+                columns={[
+                  {
+                    title: 'Placa',
+                    dataIndex: 'placa',
+                    key: 'placa',
+                    render: (placa: string) => <Tag color="green" style={{ fontSize: '14px' }}>{placa}</Tag>
+                  },
+                  {
+                    title: 'Vehículo',
+                    key: 'vehiculo',
+                    render: (record: any) => `${record.marca || 'N/A'} ${record.modelo || 'N/A'} (${record.color || 'N/A'})`
+                  },
+                  {
+                    title: 'Visitante',
+                    key: 'visitante',
+                    render: (record: any) => record.nombre_visitante || 'N/A'
+                  },
+                  {
+                    title: 'Autorizado por',
+                    dataIndex: 'residente_nombre',
+                    key: 'residente_nombre'
+                  },
+                  {
+                    title: 'Vence',
+                    dataIndex: 'fecha_vencimiento',
+                    key: 'fecha_vencimiento',
+                    render: (fecha: string) => {
+                      const vencimiento = new Date(fecha);
+                      const hoy = new Date();
+                      const diasRestantes = Math.ceil((vencimiento.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+                      
+                      return (
+                        <span style={{ color: diasRestantes <= 3 ? '#ff4d4f' : diasRestantes <= 7 ? '#faad14' : '#52c41a' }}>
+                          {vencimiento.toLocaleDateString()} ({diasRestantes} días)
+                        </span>
+                      );
+                    }
+                  }
+                ]}
+                pagination={false}
+                size="small"
+                rowKey="id"
+              />
+            </Card>
+
+            {/* Vehículos del Sistema Original (si existen) */}
+            {placasRegistradas.gestion_original?.vehiculos?.length > 0 && (
+              <Card title="🚗 Vehículos del Sistema Original">
+                <Table
+                  dataSource={placasRegistradas.gestion_original.vehiculos}
+                  columns={[
+                    {
+                      title: 'Placa',
+                      dataIndex: 'placa',
+                      key: 'placa',
+                      render: (placa: string) => <Tag color="orange" style={{ fontSize: '14px' }}>{placa}</Tag>
+                    },
+                    {
+                      title: 'Vehículo',
+                      key: 'vehiculo',
+                      render: (record: any) => `${record.marca} ${record.modelo} (${record.color})`
+                    }
+                  ]}
+                  pagination={false}
+                  size="small"
+                  rowKey="id"
+                />
+              </Card>
+            )}
+          </div>
+        )}
       </Modal>
 
       {dashboardData && (
