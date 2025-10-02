@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useNotificaciones } from '../hooks/useNotificaciones';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onToggle }) => {
@@ -8,6 +9,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedMenus, setExpandedMenus] = useState({});
+  const { nuevasReservas } = useNotificaciones();
 
   // Definir la estructura de paquetes según el backend
   const getPackageStructure = () => {
@@ -41,7 +43,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
           { id: 'cu_unidades', label: 'Gestión de Unidades', path: '/unidades', implemented: true, roles: ['administrador', 'empleado'] },
           { id: 'cu_mascotas', label: 'Gestión de Mascotas', path: '/mascotas', implemented: true, roles: ['administrador', 'residente'] },
           { id: 'cu_vehiculos', label: 'Gestión de Vehículos', path: '/vehiculos', implemented: true, roles: ['administrador'] },
-          { id: 'cu_eventos', label: 'Gestión de Eventos', path: '/eventos', implemented: true, roles: ['administrador'] },
+          { id: 'cu_eventos', label: 'Gestión de Eventos', path: '/eventos', implemented: true, roles: ['administrador'], hasNotifications: true },
           { id: 'cu_comunicados', label: 'Gestión de Comunicados', path: '/reclamos', implemented: true, roles: ['administrador'] },
           { id: 'cu_areas_comunes', label: 'Gestión de Áreas Comunes', path: '/areas-comunes', implemented: true, roles: ['administrador'] }
         ]
@@ -109,6 +111,9 @@ const Sidebar = ({ isOpen, onToggle }) => {
                   canAccess(cu.roles) && (
                     <li key={cu.id} className={`sidebar-item ${isActive(cu.path) ? 'active' : ''}`} onClick={() => handleNavigate(cu.path)}>
                       <span>{cu.label}</span>
+                      {cu.hasNotifications && nuevasReservas > 0 && (
+                        <span className="notification-badge">{nuevasReservas}</span>
+                      )}
                     </li>
                   )
                 ))}

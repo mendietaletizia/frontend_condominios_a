@@ -350,7 +350,9 @@ const ListaEventos = () => {
     <div className="dashboard-unidades">
       <div className="dashboard-header">
         <h1><CalendarOutlined /> Gestión de Eventos y Reservas</h1>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>Nuevo Evento</Button>
+        <Space>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>Nuevo Evento</Button>
+        </Space>
       </div>
 
       <Card className="unidades-filters" style={{ marginBottom: 20 }}>

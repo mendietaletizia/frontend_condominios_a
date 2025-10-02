@@ -396,5 +396,26 @@ export const comunidadAPI = {
     } catch (error) {
       throw error;
     }
+  },
+
+  // ===== NOTIFICACIONES DE RESERVAS =====
+  // Obtener conteo de nuevas reservas no vistas por admin
+  async getNuevasReservasCount() {
+    try {
+      const response = await api.get('/reservas/nuevas_count/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Marcar todas las reservas como vistas por admin
+  async marcarReservasVistas() {
+    try {
+      const response = await api.post('/reservas/marcar_vistas/');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   }
 };

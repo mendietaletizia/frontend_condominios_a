@@ -344,6 +344,7 @@
   list-style: none;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 10px 12px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.05);
@@ -377,5 +378,34 @@
   /* Mantener 1 columna en 240px, pero si se aumenta el ancho, permitir 2 */
   .sidebar {
     /* si el ancho supera 280px, la grilla se adapta automáticamente */
+  }
+}
+
+/* Badge de notificaciones */
+.notification-badge {
+  background: #e74c3c;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
+  }
+  50% {
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.6);
+  }
+  100% {
+    box-shadow: 0 2px 4px rgba(231, 76, 60, 0.3);
   }
 }
